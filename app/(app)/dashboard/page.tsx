@@ -52,12 +52,9 @@ export default function DashboardPage() {
   const receivedRevenue = activeSubs.filter(s => s.payments?.[currentMonthKey] || s.paid).reduce((acc, sub) => acc + Number(sub.monthlyValue), 0);
   const openRevenue = expectedRevenue - receivedRevenue;
 
-  const currentMonthExpenses = expenses.filter(e => {
-    const d = new Date(e.date);
-    return e.paid && d.getMonth() === today.getMonth() && d.getFullYear() === today.getFullYear();
-  }).reduce((acc, e) => acc + Number(e.amount), 0);
+  const totalExpenses = expenses.filter(e => e.paid).reduce((acc, e) => acc + Number(e.amount), 0);
 
-  const realIncome = receivedRevenue - currentMonthExpenses;
+  const realIncome = receivedRevenue - totalExpenses;
 
   // Generate last 6 months for the elegant table
   const monthList = Array.from({ length: 6 }).map((_, i) => subMonths(today, 5 - i));
@@ -165,7 +162,7 @@ export default function DashboardPage() {
                     <Info className="h-3.5 w-3.5 text-slate-500 cursor-help" />
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>Total de despesas pagas cadastradas para o mês atual.</p>
+                    <p>Total de todas as despesas pagas cadastradas.</p>
                   </TooltipContent>
                 </Tooltip>
               </div>
@@ -173,7 +170,7 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent className="p-4 pt-0">
               <div className="text-2xl font-bold">
-                {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(currentMonthExpenses)}
+                {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalExpenses)}
               </div>
             </CardContent>
           </Card>
@@ -187,7 +184,7 @@ export default function DashboardPage() {
                     <Info className={`h-3.5 w-3.5 cursor-help ${realIncome >= 0 ? 'text-emerald-500/70' : 'text-rose-500/70'}`} />
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>Lucro líquido do mês atual (Recebido - Despesas).</p>
+                    <p>Lucro líquido total (Recebido - Despesas Pagas).</p>
                   </TooltipContent>
                 </Tooltip>
               </div>

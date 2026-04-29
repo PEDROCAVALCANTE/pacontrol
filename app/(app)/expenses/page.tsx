@@ -77,11 +77,11 @@ export default function ExpensesPage() {
     return d.getMonth() === today.getMonth() && d.getFullYear() === today.getFullYear();
   });
 
-  const currentMonthPaidTotal = currentMonthExpenses
+  const currentMonthPaidTotal = expenses
     .filter(e => e.paid)
     .reduce((acc, e) => acc + Number(e.amount), 0);
 
-  const currentMonthPendingTotal = currentMonthExpenses
+  const currentMonthPendingTotal = expenses
     .filter(e => !e.paid)
     .reduce((acc, e) => acc + Number(e.amount), 0);
 
@@ -127,7 +127,7 @@ export default function ExpensesPage() {
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Despesas Pagas (Mês)</CardTitle>
+              <CardTitle className="text-sm font-medium">Despesas Pagas (Total)</CardTitle>
            </CardHeader>
            <CardContent>
               <div className="text-2xl font-bold text-rose-400">
@@ -137,7 +137,7 @@ export default function ExpensesPage() {
         </Card>
         <Card>
            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Despesas Pendentes (Mês)</CardTitle>
+              <CardTitle className="text-sm font-medium">Despesas Pendentes (Total)</CardTitle>
            </CardHeader>
            <CardContent>
               <div className="text-2xl font-bold text-amber-500">
