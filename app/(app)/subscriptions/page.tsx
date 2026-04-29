@@ -108,10 +108,8 @@ export default function SubscriptionsPage() {
         </div>
         
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-indigo-600 hover:bg-indigo-500 text-white w-full sm:w-auto" onClick={() => handleOpenDialog()}>
-              <Plus className="mr-2 h-4 w-4" /> Nova Assinatura
-            </Button>
+          <DialogTrigger render={<Button className="bg-indigo-600 hover:bg-indigo-500 text-white w-full sm:w-auto" onClick={() => handleOpenDialog()} />}>
+            <Plus className="mr-2 h-4 w-4" /> Nova Assinatura
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
