@@ -54,7 +54,7 @@ export default function DashboardPage() {
 
   const currentMonthExpenses = expenses.filter(e => {
     const d = new Date(e.date);
-    return d.getMonth() === today.getMonth() && d.getFullYear() === today.getFullYear();
+    return e.paid && d.getMonth() === today.getMonth() && d.getFullYear() === today.getFullYear();
   }).reduce((acc, e) => acc + Number(e.amount), 0);
 
   const realIncome = receivedRevenue - currentMonthExpenses;
@@ -165,7 +165,7 @@ export default function DashboardPage() {
                     <Info className="h-3.5 w-3.5 text-slate-500 cursor-help" />
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>Total de despesas cadastradas para o mês atual.</p>
+                    <p>Total de despesas pagas cadastradas para o mês atual.</p>
                   </TooltipContent>
                 </Tooltip>
               </div>

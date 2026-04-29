@@ -122,6 +122,17 @@ export async function addExpense(expense: Omit<Expense, 'id' | 'createdAt'>): Pr
   }
 }
 
+export async function updateExpense(id: string, expense: Partial<Expense>): Promise<void> {
+  const path = `expenses/${id}`;
+  try {
+    const expenseRef = doc(db, 'expenses', id);
+    await updateDoc(expenseRef, expense as any);
+  } catch (error) {
+    handleFirestoreError(error, OperationType.UPDATE, path);
+    throw error;
+  }
+}
+
 export async function deleteExpense(id: string): Promise<void> {
   const path = `expenses/${id}`;
   try {

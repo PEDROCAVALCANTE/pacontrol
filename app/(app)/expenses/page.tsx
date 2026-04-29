@@ -7,12 +7,13 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { getExpenses, addExpense, deleteExpense } from '@/lib/data-store';
+import { getExpenses, addExpense, deleteExpense, updateExpense } from '@/lib/data-store';
 import { Expense } from '@/lib/types';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, CheckCircle2, Clock } from 'lucide-react';
 import { toast } from 'sonner';
-import { format, startOfMonth, endOfMonth, isAfter, isBefore } from 'date-fns';
+import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { Badge } from '@/components/ui/badge';
 
 export default function ExpensesPage() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
@@ -48,8 +49,8 @@ export default function ExpensesPage() {
     const [year, month, day] = date.split('-');
     const parsedDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day)).getTime();
 
-    await addExpense({ description, amount: value, date: parsedDate });
-    toast.success('Despesa adicionada!');
+    await addExpense({ description, amount: value, date: parsedDate, paid: false });
+    toast.success('Despesa adicionada como pendente!');
     setIsDialogOpen(false);
     loadData();
   };
@@ -62,13 +63,26 @@ export default function ExpensesPage() {
     }
   };
 
+  const handleTogglePaid = async (expense: Expense) => {
+    const newPaidStatus = !expense.paid;
+    await updateExpense(expense.id, { paid: newPaidStatus });
+    toast.success(newPaidStatus ? 'Despesa marcada como paga!' : 'Despesa marcada como pendente.');
+    loadData();
+  };
+
   // filter current month for the summary
   const today = new Date();
-  const currentMonthExpensesTotal = expenses
-    .filter(e => {
-      const d = new Date(e.date);
-      return d.getMonth() === today.getMonth() && d.getFullYear() === today.getFullYear();
-    })
+  const currentMonthExpenses = expenses.filter(e => {
+    const d = new Date(e.date);
+    return d.getMonth() === today.getMonth() && d.getFullYear() === today.getFullYear();
+  });
+
+  const currentMonthPaidTotal = currentMonthExpenses
+    .filter(e => e.paid)
+    .reduce((acc, e) => acc + Number(e.amount), 0);
+
+  const currentMonthPendingTotal = currentMonthExpenses
+    .filter(e => !e.paid)
     .reduce((acc, e) => acc + Number(e.amount), 0);
 
   return (
@@ -113,11 +127,21 @@ export default function ExpensesPage() {
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Despesas do Mês Atual</CardTitle>
+              <CardTitle className="text-sm font-medium">Despesas Pagas (Mês)</CardTitle>
            </CardHeader>
            <CardContent>
               <div className="text-2xl font-bold text-rose-400">
-                {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(currentMonthExpensesTotal)}
+                {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(currentMonthPaidTotal)}
+              </div>
+           </CardContent>
+        </Card>
+        <Card>
+           <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Despesas Pendentes (Mês)</CardTitle>
+           </CardHeader>
+           <CardContent>
+              <div className="text-2xl font-bold text-amber-500">
+                {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(currentMonthPendingTotal)}
               </div>
            </CardContent>
         </Card>
@@ -133,6 +157,7 @@ export default function ExpensesPage() {
               <TableRow>
                 <TableHead>Data</TableHead>
                 <TableHead>Descrição</TableHead>
+                <TableHead>Status</TableHead>
                 <TableHead className="text-right">Valor</TableHead>
                 <TableHead className="text-right">Ações</TableHead>
               </TableRow>
@@ -140,7 +165,7 @@ export default function ExpensesPage() {
             <TableBody>
               {expenses.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={4} className="text-center h-24 text-muted-foreground">
+                  <TableCell colSpan={5} className="text-center h-24 text-muted-foreground">
                     Nenhuma despesa registrada.
                   </TableCell>
                 </TableRow>
@@ -149,8 +174,23 @@ export default function ExpensesPage() {
                   <TableRow key={expense.id}>
                     <TableCell>{format(new Date(expense.date), 'dd/MM/yyyy')}</TableCell>
                     <TableCell className="font-medium">{expense.description}</TableCell>
-                    <TableCell className="text-right text-rose-400 font-medium">
-                      -{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(expense.amount)}
+                    <TableCell>
+                      <Badge 
+                        variant="outline" 
+                        className={`cursor-pointer ${expense.paid ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 'bg-amber-500/10 text-amber-500 border-amber-500/20'}`}
+                        onClick={() => handleTogglePaid(expense)}
+                      >
+                        {expense.paid ? (
+                          <span className="flex items-center gap-1"><CheckCircle2 className="h-3 w-3" /> Paga</span>
+                        ) : (
+                          <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> Pendente</span>
+                        )}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right font-medium">
+                      <span className={expense.paid ? 'text-rose-400' : 'text-slate-400'}>
+                        {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(expense.amount)}
+                      </span>
                     </TableCell>
                     <TableCell className="text-right">
                       <Button variant="ghost" size="icon" onClick={() => handleDelete(expense.id)}>
