@@ -36,4 +36,5 @@ export type Expense = {
   amount: number;
   date: number;
   createdAt: number;
+  paid?: boolean;
 };

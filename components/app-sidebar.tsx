@@ -31,9 +31,9 @@ export function AppSidebar() {
   const { logout } = useAuth();
 
   const navItems = [
-    { title: 'Dashboard', url: '/dashboard', icon: LayoutDashboard },
-    { title: 'Assinaturas', url: '/subscriptions', icon: CreditCard },
-    { title: 'Despesas', url: '/expenses', icon: Receipt },
+    { title: 'Dashboard', url: '/dashboard', icon: LayoutDashboard, iconColor: 'text-indigo-400', activeBg: 'bg-indigo-500/10', activeText: 'text-indigo-400' },
+    { title: 'Assinaturas', url: '/subscriptions', icon: CreditCard, iconColor: 'text-emerald-400', activeBg: 'bg-emerald-500/10', activeText: 'text-emerald-400' },
+    { title: 'Despesas', url: '/expenses', icon: Receipt, iconColor: 'text-amber-400', activeBg: 'bg-amber-500/10', activeText: 'text-amber-400' },
   ];
 
   return (
@@ -62,10 +62,10 @@ export function AppSidebar() {
                     <SidebarMenuButton 
                       isActive={isActive} 
                       tooltip={item.title} 
-                      className={`sidebar-link px-3 py-5 rounded-lg text-slate-400 font-medium ${isActive ? 'bg-indigo-500/10 text-indigo-400' : ''}`}
+                      className={`sidebar-link px-3 py-5 rounded-lg text-slate-400 font-medium ${isActive ? `${item.activeBg} ${item.activeText}` : 'hover:bg-slate-800/50'}`}
                       render={<Link href={item.url} />}
                     >
-                        <item.icon className="w-5 h-5 mr-3" />
+                        <item.icon className={`w-5 h-5 mr-3 ${item.iconColor}`} />
                         <span className="text-base">{item.title}</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
