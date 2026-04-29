@@ -101,15 +101,17 @@ export default function SubscriptionsPage() {
 
   return (
     <div className="space-y-6">
-      <header className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-8 gap-4">
+      <header className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-6 sm:mb-8 gap-4">
         <div>
-          <h2 className="text-3xl font-bold text-white">Assinaturas</h2>
-          <p className="text-slate-400">Controle de pagamentos recorrentes.</p>
+          <h2 className="text-2xl sm:text-3xl font-bold text-white">Assinaturas</h2>
+          <p className="text-sm sm:text-base text-slate-400">Controle de pagamentos recorrentes.</p>
         </div>
         
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger render={<Button className="bg-indigo-600 hover:bg-indigo-500 text-white" onClick={() => handleOpenDialog()} />}>
-            <Plus className="mr-2 h-4 w-4" /> Nova Assinatura
+          <DialogTrigger asChild>
+            <Button className="bg-indigo-600 hover:bg-indigo-500 text-white w-full sm:w-auto" onClick={() => handleOpenDialog()}>
+              <Plus className="mr-2 h-4 w-4" /> Nova Assinatura
+            </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>

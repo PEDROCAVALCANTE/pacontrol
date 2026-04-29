@@ -58,10 +58,10 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <header className="flex justify-between items-end mb-8">
+      <header className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-6 sm:mb-8">
         <div>
-          <h2 className="text-3xl font-bold text-white">Dashboard Financeiro</h2>
-          <p className="text-slate-400">Visão geral de receitas e inadimplência</p>
+          <h2 className="text-2xl sm:text-3xl font-bold text-white">Dashboard Financeiro</h2>
+          <p className="text-sm sm:text-base text-slate-400">Visão geral de receitas e inadimplência</p>
         </div>
       </header>
 
@@ -110,12 +110,12 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card className="p-1 bg-indigo-500/5 border-indigo-500/20">
+        <Card className={`p-1 border ${realIncome >= 0 ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-rose-500/5 border-rose-500/20'}`}>
           <CardHeader className="flex flex-col items-start space-y-0 p-4 pb-2">
-            <p className="text-xs text-indigo-400 uppercase tracking-widest mb-2">Lucro Real</p>
+            <p className={`text-xs uppercase tracking-widest mb-2 ${realIncome >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>Margem de Lucro</p>
           </CardHeader>
           <CardContent className="p-4 pt-0">
-            <div className="text-2xl font-bold text-indigo-400">
+            <div className={`text-2xl font-bold ${realIncome >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
               {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(realIncome)}
             </div>
           </CardContent>

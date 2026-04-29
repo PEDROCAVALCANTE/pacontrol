@@ -3,14 +3,30 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Helper functions
+    // Helper para verificar se está logado
     function isSignedIn() {
       return request.auth != null;
     }
 
-    // Since this is a single workspace app, any authenticated user can read and write data.
-    // If you plan to have multiple users with different data, you should add a `userId` field
-    // to all your documents and check it here (e.g., `resource.data.userId == request.auth.uid`).
+    // Verifica se o usuário atual é admin.
+    // IMPORTANTE: Para isso funcionar, o ID do documento na coleção "users" 
+    // DEVE SER EXATAMENTE O MESMO UID (User ID) gerado pelo Firebase Authentication.
+    // Se você usou "Adicionar Documento" e gerou um ID aleatório (como jszzGD...), 
+    // o Firestore não vai conseguir ler. O ideal é criar o documento "users" 
+    // com o UID do seu usuário logado e colocar `email: "admin"`.
+    function isAdmin() {
+      return isSignedIn() && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.email == 'admin';
+    }
+
+    // Regras das coleções (permitindo acesso caso seja Admin ou apenas logado)
+    // OBS: Por precaução (para evitar que seu app quebre se o ID do Firestore estiver 
+    // diferente do Auth), deixei `isSignedIn()` aqui. Se quiser restringir 
+    // APENAS ao admin, troque `isSignedIn()` por `isAdmin()`.
+
+    match /users/{userId} {
+      allow read, write: if isSignedIn();
+    }
 
     match /clients/{clientId} {
       allow read, write: if isSignedIn();
@@ -24,7 +40,7 @@ service cloud.firestore {
       allow read, write: if isSignedIn();
     }
     
-    // Catch-all deny for any other collections
+    // Bloqueia todo o resto por segurança
     match /{document=**} {
       allow read, write: if false;
     }

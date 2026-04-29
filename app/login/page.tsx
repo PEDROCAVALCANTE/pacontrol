@@ -25,8 +25,8 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-black p-4 relative overflow-hidden">
-      <div className="w-48 h-24 relative mb-8 flex items-center justify-center z-10">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-black p-4 sm:p-8 relative overflow-hidden">
+      <div className="w-40 h-20 sm:w-48 sm:h-24 relative mb-6 sm:mb-8 flex items-center justify-center z-10">
         <Image 
           src="https://iili.io/BsHmxFR.png" 
           alt="Logo" 
@@ -37,7 +37,7 @@ export default function LoginPage() {
         />
       </div>
 
-      <Card className="w-full max-w-md shadow-2xl bg-black/50 backdrop-blur-xl relative z-10 border-slate-800/60 p-4">
+      <Card className="w-full max-w-sm shadow-2xl bg-black/50 backdrop-blur-xl relative z-10 border-slate-800/60 p-2 sm:p-4">
         <form onSubmit={handleLogin}>
           <CardContent className="space-y-5">
             <div className="space-y-2">
