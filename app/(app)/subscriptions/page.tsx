@@ -1,0 +1,235 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { getClients, getSubscriptions, addSubscription, updateSubscription } from '@/lib/data-store';
+import { Client, Subscription } from '@/lib/types';
+import { Search, Plus, Edit2, CheckCircle2, ChevronDown, ChevronUp } from 'lucide-react';
+import { toast } from 'sonner';
+import { setDate, isBefore, startOfDay } from 'date-fns';
+
+export default function SubscriptionsPage() {
+  const [clients, setClients] = useState<Client[]>([]);
+  const [subs, setSubs] = useState<Subscription[]>([]);
+  const [search, setSearch] = useState('');
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingSub, setEditingSub] = useState<Subscription | null>(null);
+
+  const [clientId, setClientId] = useState('');
+  const [monthlyValue, setMonthlyValue] = useState('');
+  const [dueDay, setDueDay] = useState('');
+  const [status, setStatus] = useState<'active' | 'inactive'>('active');
+
+  const loadData = async () => {
+    const [c, s] = await Promise.all([getClients(), getSubscriptions()]);
+    setClients(c);
+    setSubs(s);
+  };
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    loadData();
+  }, []);
+
+  const handleOpenDialog = (sub?: Subscription) => {
+    if (sub) {
+      setEditingSub(sub);
+      setClientId(sub.clientId);
+      setMonthlyValue(sub.monthlyValue.toString());
+      setDueDay(sub.dueDay.toString());
+      setStatus(sub.status);
+    } else {
+      setEditingSub(null);
+      setClientId('');
+      setMonthlyValue('');
+      setDueDay('');
+      setStatus('active');
+    }
+    setIsDialogOpen(true);
+  };
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!clientId) {
+      toast.error('Selecione um cliente.');
+      return;
+    }
+    
+    const value = parseFloat(monthlyValue);
+    const day = parseInt(dueDay, 10);
+    
+    if (isNaN(value) || value <= 0) return toast.error('Valor inválido');
+    if (isNaN(day) || day < 1 || day > 31) return toast.error('Dia inválido (1-31)');
+
+    if (editingSub) {
+      await updateSubscription(editingSub.id, { clientId, monthlyValue: value, dueDay: day, status });
+      toast.success('Assinatura atualizada!');
+    } else {
+      await addSubscription({ clientId, monthlyValue: value, dueDay: day, status, paid: false, lastPaymentDate: null });
+      toast.success('Assinatura criada!');
+    }
+    setIsDialogOpen(false);
+    loadData();
+  };
+
+  const markAsPaid = async (sub: Subscription) => {
+    const pDate = !sub.paid ? new Date().getTime() : null;
+    await updateSubscription(sub.id, { paid: !sub.paid, lastPaymentDate: pDate });
+    toast.success(sub.paid ? 'Marcado como pendente.' : 'Marcado como pago!');
+    loadData();
+  };
+
+  const getClientName = (id: string) => clients.find(c => c.id === id)?.name || 'Desconhecido';
+
+  const today = startOfDay(new Date());
+
+  const filteredSubs = subs.filter(s => {
+    const clientName = getClientName(s.clientId).toLowerCase();
+    return clientName.includes(search.toLowerCase());
+  }).sort((a, b) => {
+    // sort by active then dueDay
+    if (a.status !== b.status) return a.status === 'active' ? -1 : 1;
+    return a.dueDay - b.dueDay;
+  });
+
+  return (
+    <div className="space-y-6">
+      <header className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-8 gap-4">
+        <div>
+          <h2 className="text-3xl font-bold text-white">Assinaturas</h2>
+          <p className="text-slate-400">Controle de pagamentos recorrentes.</p>
+        </div>
+        
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger render={<Button className="bg-indigo-600 hover:bg-indigo-500 text-white" onClick={() => handleOpenDialog()} />}>
+            <Plus className="mr-2 h-4 w-4" /> Nova Assinatura
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>{editingSub ? 'Editar Assinatura' : 'Nova Assinatura'}</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleSave} className="space-y-4 pt-4">
+              <div className="space-y-2">
+                <Label>Cliente</Label>
+                <Select value={clientId} onValueChange={(v) => v && setClientId(v)} disabled={!!editingSub}>
+                  <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                  <SelectContent>
+                    {clients.filter(c => c.status === 'active' || c.id === clientId).map(c => (
+                      <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="value">Valor Mensal (R$)</Label>
+                  <Input id="value" type="number" step="0.01" value={monthlyValue} onChange={e => setMonthlyValue(e.target.value)} required />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="day">Dia de Vencimento</Label>
+                  <Input id="day" type="number" min="1" max="31" value={dueDay} onChange={e => setDueDay(e.target.value)} required />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label>Status</Label>
+                <Select value={status} onValueChange={(v) => v && setStatus(v as 'active' | 'inactive')}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active">Ativa</SelectItem>
+                    <SelectItem value="inactive">Inativa</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="pt-4 flex justify-end">
+                <Button type="submit">Salvar</Button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
+      </header>
+
+      <Card>
+        <CardHeader>
+          <div className="relative">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar por cliente..."
+              className="pl-8 max-w-sm"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Cliente</TableHead>
+                <TableHead>Valor</TableHead>
+                <TableHead>Vencimento</TableHead>
+                <TableHead>Situação</TableHead>
+                <TableHead className="text-right">Ações</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredSubs.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center h-24 text-muted-foreground">
+                    Nenhuma assinatura encontrada.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filteredSubs.map((sub) => {
+                  const dueDate = setDate(today, sub.dueDay);
+                  const isLate = sub.status === 'active' && !sub.paid && isBefore(dueDate, today);
+                  
+                  return (
+                  <TableRow key={sub.id}>
+                    <TableCell className="font-medium">{getClientName(sub.clientId)}</TableCell>
+                    <TableCell>{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(sub.monthlyValue)}</TableCell>
+                    <TableCell>Dia {sub.dueDay}</TableCell>
+                    <TableCell>
+                      {sub.status === 'inactive' ? (
+                        <Badge variant="outline">Inativa</Badge>
+                      ) : sub.paid ? (
+                        <Badge className="bg-emerald-100 text-emerald-800 hover:bg-emerald-100 border-none">Pago</Badge>
+                      ) : isLate ? (
+                        <Badge className="bg-rose-100 text-rose-800 hover:bg-rose-100 border-none">Atrasado</Badge>
+                      ) : (
+                        <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100 border-none">Aberto</Badge>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right flex items-center justify-end gap-2">
+                       {sub.status === 'active' && (
+                         <Button 
+                          variant={sub.paid ? 'outline' : 'default'} 
+                          size="sm" 
+                          className={sub.paid ? 'text-slate-500' : 'bg-emerald-600 hover:bg-emerald-700'}
+                          onClick={() => markAsPaid(sub)}
+                          title={sub.paid ? 'Desmarcar pagamento' : 'Marcar como pago'}
+                        >
+                          <CheckCircle2 className="h-4 w-4 mr-1" />
+                          {sub.paid ? 'Desfazer' : 'Pagar'}
+                        </Button>
+                       )}
+                      <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(sub)}>
+                        <Edit2 className="h-4 w-4 text-blue-600" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                )})
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
