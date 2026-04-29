@@ -1,12 +1,13 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { getClients, getSubscriptions, getExpenses } from '@/lib/data-store';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { getClients, getSubscriptions, getExpenses, updateSubscription } from '@/lib/data-store';
 import { Client, Expense, Subscription } from '@/lib/types';
-import { DollarSign, Users, AlertCircle, TrendingUp, CreditCard, Activity } from 'lucide-react';
-import { format, isAfter, setDate, startOfDay, endOfMonth, startOfMonth, isBefore } from 'date-fns';
+import { DollarSign, AlertCircle, TrendingUp, CreditCard, Activity, Check, X, MessageCircle } from 'lucide-react';
+import { format, isAfter, setDate, startOfDay, endOfMonth, startOfMonth, isBefore, subMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { toast } from 'sonner';
 
 export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
@@ -14,27 +15,39 @@ export default function DashboardPage() {
   const [subs, setSubs] = useState<Subscription[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
 
+  const loadData = async () => {
+    const [c, s, e] = await Promise.all([getClients(), getSubscriptions(), getExpenses()]);
+    setClients(c);
+    setSubs(s);
+    setExpenses(e);
+    setLoading(false);
+  };
+
   useEffect(() => {
-    async function loadData() {
-      const [c, s, e] = await Promise.all([getClients(), getSubscriptions(), getExpenses()]);
-      setClients(c);
-      setSubs(s);
-      setExpenses(e);
-      setLoading(false);
-    }
     loadData();
   }, []);
 
   if (loading) return <div>Carregando dashboard...</div>;
 
   const today = startOfDay(new Date());
+  const currentMonthKey = format(today, 'yyyy-MM');
+  
+  const getSubClientName = (sub: Subscription) => {
+    if (sub.clientName) return sub.clientName;
+    if (sub.clientId) return clients.find(c => c.id === sub.clientId)?.name || 'Desconhecido';
+    return 'Desconhecido';
+  };
+
+  const getSubClientPhone = (sub: Subscription) => {
+    if (sub.clientPhone) return sub.clientPhone;
+    if (sub.clientId) return clients.find(c => c.id === sub.clientId)?.phone || '';
+    return '';
+  };
   
   // Calculations
   const activeSubs = subs.filter(s => s.status === 'active');
-  const activeClientsCount = clients.filter(c => c.status === 'active').length;
-
   const expectedRevenue = activeSubs.reduce((acc, sub) => acc + sub.monthlyValue, 0);
-  const receivedRevenue = activeSubs.filter(s => s.paid).reduce((acc, sub) => acc + sub.monthlyValue, 0);
+  const receivedRevenue = activeSubs.filter(s => s.payments?.[currentMonthKey] || s.paid).reduce((acc, sub) => acc + sub.monthlyValue, 0);
   const openRevenue = expectedRevenue - receivedRevenue;
 
   const currentMonthExpenses = expenses.filter(e => {
@@ -44,17 +57,25 @@ export default function DashboardPage() {
 
   const realIncome = receivedRevenue - currentMonthExpenses;
 
-  const lateSubs = activeSubs.filter(s => {
-    const dueDateThisMonth = setDate(today, s.dueDay);
-    return !s.paid && isBefore(dueDateThisMonth, today);
-  });
+  // Generate last 6 months for the elegant table
+  const monthList = Array.from({ length: 6 }).map((_, i) => subMonths(today, 5 - i));
 
-  const soonSubs = activeSubs.filter(s => {
-    const dueDateThisMonth = setDate(today, s.dueDay);
-    return !s.paid && !isBefore(dueDateThisMonth, today) && (dueDateThisMonth.getTime() - today.getTime()) <= 7 * 24 * 60 * 60 * 1000;
-  });
+  const togglePayment = async (sub: Subscription, monthDate: Date) => {
+    const mKey = format(monthDate, 'yyyy-MM');
+    const isPaid = sub.payments?.[mKey] || (mKey === currentMonthKey ? sub.paid : false);
+    
+    const newPayments = { ...(sub.payments || {}) };
+    newPayments[mKey] = !isPaid;
+    
+    // For current month backwards compatibility
+    const paidLegacyUpdate = mKey === currentMonthKey ? { paid: !isPaid } : {};
 
-  const getClientName = (id: string) => clients.find(c => c.id === id)?.name || 'Desconhecido';
+    await updateSubscription(sub.id, { payments: newPayments, ...paidLegacyUpdate });
+    toast.success(!isPaid ? 'Mês marcado como pago' : 'Pagamento removido');
+    loadData();
+  };
+
+  const isTodayAfter10th = today.getDate() > 10;
 
   return (
     <div className="space-y-6">
@@ -127,68 +148,88 @@ export default function DashboardPage() {
         </Card>
       </div>
 
-      <div className="grid gap-8 grid-cols-1 md:grid-cols-2">
-        <div className="flex flex-col gap-4">
-          <div className="flex items-center justify-between px-2">
-            <h3 className="font-bold flex items-center gap-2 text-white">
-              <span className="w-2 h-2 bg-rose-500 rounded-full animate-pulse"></span> Inadimplentes
-            </h3>
-            <span className="text-xs text-rose-400 font-medium">{lateSubs.length} Clientes em atraso</span>
-          </div>
-
-          <Card className="overflow-hidden border-rose-500/20 p-0">
-            <CardContent className="p-0">
-              {lateSubs.length === 0 ? (
-                <p className="text-sm text-slate-500 p-6 text-center">Nenhum cliente em atraso.</p>
-              ) : (
-                <div className="divide-y divide-slate-800/50">
-                  {lateSubs.map(sub => (
-                    <div key={sub.id} className="overdue-highlight hover:bg-rose-900/10 transition-colors flex items-center justify-between p-4">
-                      <div>
-                        <p className="font-medium text-rose-100">{getClientName(sub.clientId)}</p>
-                        <p className="text-xs text-slate-500 text-rose-400/60">Venceu dia {sub.dueDay}</p>
-                      </div>
-                      <div className="font-mono text-rose-100">
-                        {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(sub.monthlyValue)}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center justify-between px-2">
+          <h3 className="font-bold flex items-center gap-2 text-white">Controle de Mensalidades</h3>
+          <span className="text-xs text-slate-400 font-medium">Histórico de {monthList.length} meses</span>
         </div>
 
-        <div className="flex flex-col gap-4">
-          <div className="flex items-center justify-between px-2">
-            <h3 className="font-bold flex items-center gap-2 text-white">
-              <span className="w-2 h-2 bg-amber-400 rounded-full"></span> Próximos Vencimentos
-            </h3>
-            <span className="text-xs text-slate-500">Próximos 7 dias</span>
-          </div>
-
-          <Card className="overflow-hidden p-0">
-            <CardContent className="p-0">
-              {soonSubs.length === 0 ? (
-                <p className="text-sm text-slate-500 p-6 text-center">Nenhuma assinatura vencendo nos próximos 7 dias.</p>
-              ) : (
-                <div className="divide-y divide-slate-800/50">
-                  {soonSubs.map(sub => (
-                    <div key={sub.id} className="hover:bg-slate-800/30 transition-colors flex items-center justify-between p-4">
-                      <div>
-                        <p className="font-medium text-slate-200">{getClientName(sub.clientId)}</p>
-                        <p className="text-xs text-slate-500">Vence dia {sub.dueDay}</p>
-                      </div>
-                      <div className="font-mono text-slate-200">
-                        {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(sub.monthlyValue)}
-                      </div>
-                    </div>
+        <Card className="overflow-x-auto border-slate-800 p-0">
+          <CardContent className="p-0 min-w-[800px]">
+            <table className="w-full text-sm text-left">
+              <thead className="bg-slate-900/50 border-b border-slate-800 text-slate-400">
+                <tr>
+                  <th className="px-6 py-4 font-medium uppercase tracking-wider text-xs">Cliente</th>
+                  <th className="px-6 py-4 font-medium uppercase tracking-wider text-xs w-32">Ação</th>
+                  {monthList.map(m => (
+                    <th key={m.getTime()} className="px-4 py-4 font-medium uppercase tracking-wider text-xs text-center w-24">
+                      {format(m, 'MMM', { locale: ptBR })}
+                    </th>
                   ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-800/50">
+                {activeSubs.map(sub => {
+                  const isCurrentMonthPaid = sub.payments?.[currentMonthKey] || sub.paid;
+                  const cPhone = getSubClientPhone(sub).replace(/\D/g, '');
+                  const shouldMessage = !isCurrentMonthPaid && isTodayAfter10th;
+
+                  return (
+                    <tr key={sub.id} className="hover:bg-slate-800/20 transition-colors">
+                      <td className="px-6 py-4">
+                        <p className="font-medium text-slate-100">{getSubClientName(sub)}</p>
+                        <p className="text-xs text-slate-500">
+                          {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(sub.monthlyValue)} 
+                          {' • '}Dia {sub.dueDay}
+                        </p>
+                      </td>
+                      <td className="px-6 py-4">
+                        {shouldMessage && cPhone && (
+                          <a 
+                            href={`https://wa.me/55${cPhone}?text=Olá! Vimos que sua mensalidade deste mês (vencimento dia ${sub.dueDay}) está pendente. Para manter o seu acesso, não esqueça de realizar o pagamento.`}
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center justify-center bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 p-2 rounded-full transition-colors"
+                            title="Cobrar via WhatsApp"
+                          >
+                            <MessageCircle className="w-4 h-4" />
+                          </a>
+                        )}
+                      </td>
+                      {monthList.map(m => {
+                        const mKey = format(m, 'yyyy-MM');
+                        const isThisMonthPaid = sub.payments?.[mKey] || (mKey === currentMonthKey && sub.paid);
+                        
+                        return (
+                          <td key={m.getTime()} className="px-4 py-4 text-center">
+                            <button
+                              onClick={() => togglePayment(sub, m)}
+                              title={isThisMonthPaid ? 'Marcar como pendente' : 'Marcar como pago'}
+                              className={`w-8 h-8 mx-auto rounded-full flex items-center justify-center transition-all ${
+                                isThisMonthPaid 
+                                  ? 'bg-emerald-500/20 text-emerald-400 ring-1 ring-emerald-500/50' 
+                                  : 'bg-slate-800/50 text-slate-500 hover:bg-slate-700 hover:text-slate-300'
+                              }`}
+                            >
+                              {isThisMonthPaid ? <Check className="w-4 h-4" /> : <X className="w-4 h-4 opacity-50" />}
+                            </button>
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  )
+                })}
+                {activeSubs.length === 0 && (
+                  <tr>
+                    <td colSpan={2 + monthList.length} className="px-6 py-8 text-center text-slate-500">
+                      Nenhuma assinatura cadastrada ou ativa.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

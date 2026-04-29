@@ -10,12 +10,23 @@ export type Client = {
 
 export type Subscription = {
   id: string;
-  clientId: string;
+  // Legacy
+  clientId?: string;
+  paid?: boolean;
+  lastPaymentDate?: number | null;
+  
+  // New merged fields
+  clientName?: string;
+  clientPhone?: string;
+  service?: string;
+  
   monthlyValue: number;
   dueDay: number;
   status: 'active' | 'inactive';
-  paid: boolean;
-  lastPaymentDate: number | null;
+  
+  // Year-Month to paid boolean, e.g., '2024-05': true
+  payments?: Record<string, boolean>;
+  
   createdAt: number;
 };
 

@@ -32,7 +32,6 @@ export function AppSidebar() {
 
   const navItems = [
     { title: 'Dashboard', url: '/dashboard', icon: LayoutDashboard },
-    { title: 'Clientes', url: '/clients', icon: Users },
     { title: 'Assinaturas', url: '/subscriptions', icon: CreditCard },
     { title: 'Despesas', url: '/expenses', icon: Receipt },
   ];

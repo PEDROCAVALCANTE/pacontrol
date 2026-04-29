@@ -11,9 +11,9 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { getClients, getSubscriptions, addSubscription, updateSubscription } from '@/lib/data-store';
 import { Client, Subscription } from '@/lib/types';
-import { Search, Plus, Edit2, CheckCircle2, ChevronDown, ChevronUp } from 'lucide-react';
+import { Search, Plus, Edit2, CheckCircle2, MessageCircle } from 'lucide-react';
 import { toast } from 'sonner';
-import { setDate, isBefore, startOfDay } from 'date-fns';
+import { setDate, isBefore, startOfDay, format } from 'date-fns';
 
 export default function SubscriptionsPage() {
   const [clients, setClients] = useState<Client[]>([]);
@@ -22,7 +22,10 @@ export default function SubscriptionsPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingSub, setEditingSub] = useState<Subscription | null>(null);
 
-  const [clientId, setClientId] = useState('');
+  // Merged form fields
+  const [clientName, setClientName] = useState('');
+  const [clientPhone, setClientPhone] = useState('');
+  const [service, setService] = useState('');
   const [monthlyValue, setMonthlyValue] = useState('');
   const [dueDay, setDueDay] = useState('');
   const [status, setStatus] = useState<'active' | 'inactive'>('active');
@@ -34,20 +37,35 @@ export default function SubscriptionsPage() {
   };
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadData();
   }, []);
+
+  const getSubClientName = (sub: Subscription) => {
+    if (sub.clientName) return sub.clientName;
+    if (sub.clientId) return clients.find(c => c.id === sub.clientId)?.name || 'Desconhecido';
+    return 'Desconhecido';
+  };
+
+  const getSubClientPhone = (sub: Subscription) => {
+    if (sub.clientPhone) return sub.clientPhone;
+    if (sub.clientId) return clients.find(c => c.id === sub.clientId)?.phone || '';
+    return '';
+  };
 
   const handleOpenDialog = (sub?: Subscription) => {
     if (sub) {
       setEditingSub(sub);
-      setClientId(sub.clientId);
+      setClientName(getSubClientName(sub));
+      setClientPhone(getSubClientPhone(sub));
+      setService(sub.service || '');
       setMonthlyValue(sub.monthlyValue.toString());
       setDueDay(sub.dueDay.toString());
       setStatus(sub.status);
     } else {
       setEditingSub(null);
-      setClientId('');
+      setClientName('');
+      setClientPhone('');
+      setService('');
       setMonthlyValue('');
       setDueDay('');
       setStatus('active');
@@ -57,8 +75,8 @@ export default function SubscriptionsPage() {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!clientId) {
-      toast.error('Selecione um cliente.');
+    if (!clientName.trim()) {
+      toast.error('Informe o nome do cliente.');
       return;
     }
     
@@ -68,33 +86,50 @@ export default function SubscriptionsPage() {
     if (isNaN(value) || value <= 0) return toast.error('Valor inválido');
     if (isNaN(day) || day < 1 || day > 31) return toast.error('Dia inválido (1-31)');
 
+    const subData = { 
+      clientName, 
+      clientPhone, 
+      service,
+      monthlyValue: value, 
+      dueDay: day, 
+      status 
+    };
+
     if (editingSub) {
-      await updateSubscription(editingSub.id, { clientId, monthlyValue: value, dueDay: day, status });
+      await updateSubscription(editingSub.id, subData);
       toast.success('Assinatura atualizada!');
     } else {
-      await addSubscription({ clientId, monthlyValue: value, dueDay: day, status, paid: false, lastPaymentDate: null });
+      await addSubscription({ ...subData, payments: {} });
       toast.success('Assinatura criada!');
     }
     setIsDialogOpen(false);
     loadData();
   };
 
+  const today = startOfDay(new Date());
+  const currentMonthKey = format(today, 'yyyy-MM');
+
   const markAsPaid = async (sub: Subscription) => {
-    const pDate = !sub.paid ? new Date().getTime() : null;
-    await updateSubscription(sub.id, { paid: !sub.paid, lastPaymentDate: pDate });
-    toast.success(sub.paid ? 'Marcado como pendente.' : 'Marcado como pago!');
+    const isPaid = sub.payments?.[currentMonthKey] || sub.paid;
+    const newPayments = { ...(sub.payments || {}) };
+    
+    if (isPaid) {
+      newPayments[currentMonthKey] = false;
+      // also clear legacy
+      await updateSubscription(sub.id, { payments: newPayments, paid: false });
+      toast.success('Marcado como pendente.');
+    } else {
+      newPayments[currentMonthKey] = true;
+      await updateSubscription(sub.id, { payments: newPayments, paid: true, lastPaymentDate: Date.now() });
+      toast.success('Marcado como pago!');
+    }
     loadData();
   };
 
-  const getClientName = (id: string) => clients.find(c => c.id === id)?.name || 'Desconhecido';
-
-  const today = startOfDay(new Date());
-
   const filteredSubs = subs.filter(s => {
-    const clientName = getClientName(s.clientId).toLowerCase();
-    return clientName.includes(search.toLowerCase());
+    const name = getSubClientName(s).toLowerCase();
+    return name.includes(search.toLowerCase());
   }).sort((a, b) => {
-    // sort by active then dueDay
     if (a.status !== b.status) return a.status === 'active' ? -1 : 1;
     return a.dueDay - b.dueDay;
   });
@@ -104,7 +139,7 @@ export default function SubscriptionsPage() {
       <header className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-6 sm:mb-8 gap-4">
         <div>
           <h2 className="text-2xl sm:text-3xl font-bold text-white">Assinaturas</h2>
-          <p className="text-sm sm:text-base text-slate-400">Controle de pagamentos recorrentes.</p>
+          <p className="text-sm sm:text-base text-slate-400">Controle de clientes e pagamentos recorrentes.</p>
         </div>
         
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -117,15 +152,18 @@ export default function SubscriptionsPage() {
             </DialogHeader>
             <form onSubmit={handleSave} className="space-y-4 pt-4">
               <div className="space-y-2">
-                <Label>Cliente</Label>
-                <Select value={clientId} onValueChange={(v) => v && setClientId(v)} disabled={!!editingSub}>
-                  <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
-                  <SelectContent>
-                    {clients.filter(c => c.status === 'active' || c.id === clientId).map(c => (
-                      <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label htmlFor="clientName">Nome do Cliente</Label>
+                <Input id="clientName" value={clientName} onChange={e => setClientName(e.target.value)} placeholder="Ex: João Silva" required />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="clientPhone">Telefone (WhatsApp)</Label>
+                  <Input id="clientPhone" value={clientPhone} onChange={e => setClientPhone(e.target.value)} placeholder="(11) 99999-9999" />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="service">Serviço/Produto</Label>
+                  <Input id="service" value={service} onChange={e => setService(e.target.value)} placeholder="Ex: Manutenção Mensal" />
+                </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -174,7 +212,7 @@ export default function SubscriptionsPage() {
                 <TableHead>Cliente</TableHead>
                 <TableHead>Valor</TableHead>
                 <TableHead>Vencimento</TableHead>
-                <TableHead>Situação</TableHead>
+                <TableHead>Situação (Mês Atual)</TableHead>
                 <TableHead className="text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>
@@ -188,17 +226,22 @@ export default function SubscriptionsPage() {
               ) : (
                 filteredSubs.map((sub) => {
                   const dueDate = setDate(today, sub.dueDay);
-                  const isLate = sub.status === 'active' && !sub.paid && isBefore(dueDate, today);
+                  const isPaid = sub.payments?.[currentMonthKey] || sub.paid;
+                  const isLate = sub.status === 'active' && !isPaid && isBefore(dueDate, today);
+                  const cPhone = getSubClientPhone(sub).replace(/\D/g, '');
                   
                   return (
                   <TableRow key={sub.id}>
-                    <TableCell className="font-medium">{getClientName(sub.clientId)}</TableCell>
+                    <TableCell>
+                      <p className="font-medium">{getSubClientName(sub)}</p>
+                      {sub.service && <p className="text-xs text-slate-500">{sub.service}</p>}
+                    </TableCell>
                     <TableCell>{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(sub.monthlyValue)}</TableCell>
                     <TableCell>Dia {sub.dueDay}</TableCell>
                     <TableCell>
                       {sub.status === 'inactive' ? (
                         <Badge variant="outline">Inativa</Badge>
-                      ) : sub.paid ? (
+                      ) : isPaid ? (
                         <Badge className="bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border-none">Pago</Badge>
                       ) : isLate ? (
                         <Badge className="bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 border-none">Atrasado</Badge>
@@ -209,14 +252,14 @@ export default function SubscriptionsPage() {
                     <TableCell className="text-right flex items-center justify-end gap-2">
                        {sub.status === 'active' && (
                          <Button 
-                          variant={sub.paid ? 'outline' : 'default'} 
+                          variant={isPaid ? 'outline' : 'default'} 
                           size="sm" 
-                          className={sub.paid ? 'text-slate-500' : 'bg-emerald-600 hover:bg-emerald-700'}
+                          className={isPaid ? 'text-slate-500' : 'bg-emerald-600 hover:bg-emerald-700 text-white'}
                           onClick={() => markAsPaid(sub)}
-                          title={sub.paid ? 'Desmarcar pagamento' : 'Marcar como pago'}
+                          title={isPaid ? 'Desmarcar pagamento' : 'Marcar como pago'}
                         >
                           <CheckCircle2 className="h-4 w-4 mr-1" />
-                          {sub.paid ? 'Desfazer' : 'Pagar'}
+                          {isPaid ? 'Desfazer' : 'Pagar'}
                         </Button>
                        )}
                       <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(sub)}>
