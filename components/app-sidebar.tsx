@@ -2,6 +2,7 @@
 
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { 
   LayoutDashboard, 
   Users, 
@@ -39,11 +40,16 @@ export function AppSidebar() {
   return (
     <Sidebar className="border-r border-slate-800 glass text-slate-400">
       <SidebarHeader className="border-b px-6 py-6 border-slate-800/50">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center font-bold text-white">
-            PA
+        <div className="flex justify-center items-center">
+          <div className="w-32 h-12 relative flex items-center justify-center">
+            <Image 
+              src="https://iili.io/Bs2OL4s.png" 
+              alt="PA Control" 
+              fill
+              className="object-contain"
+              referrerPolicy="no-referrer"
+            />
           </div>
-          <h1 className="text-xl font-bold tracking-tight text-white">PA Control</h1>
         </div>
       </SidebarHeader>
       <SidebarContent className="px-2 pt-4">
@@ -71,9 +77,8 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter className="border-t border-slate-800/50 p-4">
-        <div className="p-4 bg-slate-800/50 rounded-xl border border-slate-700/50 mb-4">
-          <p className="text-xs text-slate-400 mb-1 uppercase tracking-wider">Usuário</p>
-          <p className="text-sm font-medium text-white">financeiro@empresa.com</p>
+        <div className="p-4 bg-slate-800/50 rounded-xl border border-slate-700/50 mb-4 text-center">
+          <p className="text-sm font-medium text-white">Pedro & Angra</p>
         </div>
         <SidebarMenu>
           <SidebarMenuItem>

@@ -67,8 +67,9 @@ export default function DashboardPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
         <Card className="p-1">
-          <CardHeader className="flex flex-col items-start space-y-0 p-4 pb-2">
-            <p className="text-xs text-slate-400 uppercase tracking-widest mb-2">Receita Prevista</p>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 p-4 pb-2">
+            <p className="text-xs text-slate-400 uppercase tracking-widest">Receita Prevista</p>
+            <TrendingUp className="h-4 w-4 text-slate-400" />
           </CardHeader>
           <CardContent className="p-4 pt-0">
             <div className="text-2xl font-bold">
@@ -78,8 +79,9 @@ export default function DashboardPage() {
         </Card>
         
         <Card className="p-1">
-          <CardHeader className="flex flex-col items-start space-y-0 p-4 pb-2">
-            <p className="text-xs text-emerald-400 uppercase tracking-widest mb-2">Recebido</p>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 p-4 pb-2">
+            <p className="text-xs text-emerald-400 uppercase tracking-widest">Recebido</p>
+            <DollarSign className="h-4 w-4 text-emerald-400" />
           </CardHeader>
           <CardContent className="p-4 pt-0">
             <div className="text-2xl font-bold text-emerald-400">
@@ -89,8 +91,9 @@ export default function DashboardPage() {
         </Card>
 
         <Card className="p-1 border-rose-500/30">
-          <CardHeader className="flex flex-col items-start space-y-0 p-4 pb-2">
-            <p className="text-xs text-rose-400 uppercase tracking-widest mb-2">Em Aberto</p>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 p-4 pb-2">
+            <p className="text-xs text-rose-400 uppercase tracking-widest">Em Aberto</p>
+            <AlertCircle className="h-4 w-4 text-rose-400" />
           </CardHeader>
           <CardContent className="p-4 pt-0">
             <div className="text-2xl font-bold text-rose-400">
@@ -100,8 +103,9 @@ export default function DashboardPage() {
         </Card>
 
         <Card className="p-1">
-          <CardHeader className="flex flex-col items-start space-y-0 p-4 pb-2">
-            <p className="text-xs text-slate-400 uppercase tracking-widest mb-2">Despesas</p>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 p-4 pb-2">
+            <p className="text-xs text-slate-400 uppercase tracking-widest">Despesas</p>
+            <CreditCard className="h-4 w-4 text-slate-400" />
           </CardHeader>
           <CardContent className="p-4 pt-0">
             <div className="text-2xl font-bold">
@@ -111,8 +115,9 @@ export default function DashboardPage() {
         </Card>
 
         <Card className={`p-1 border ${realIncome >= 0 ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-rose-500/5 border-rose-500/20'}`}>
-          <CardHeader className="flex flex-col items-start space-y-0 p-4 pb-2">
-            <p className={`text-xs uppercase tracking-widest mb-2 ${realIncome >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>Margem de Lucro</p>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 p-4 pb-2">
+            <p className={`text-xs uppercase tracking-widest ${realIncome >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>Margem de Lucro</p>
+            <Activity className={`h-4 w-4 ${realIncome >= 0 ? 'text-emerald-400' : 'text-rose-400'}`} />
           </CardHeader>
           <CardContent className="p-4 pt-0">
             <div className={`text-2xl font-bold ${realIncome >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>

@@ -25,6 +25,7 @@ export default function ClientsPage() {
   const [phone, setPhone] = useState('');
   const [responsible, setResponsible] = useState('');
   const [status, setStatus] = useState<'active' | 'inactive'>('active');
+  const [value, setValue] = useState<number | ''>('');
 
   const loadClients = async () => {
     const data = await getClients();
@@ -43,23 +44,26 @@ export default function ClientsPage() {
       setPhone(client.phone);
       setResponsible(client.responsible);
       setStatus(client.status);
+      setValue(client.value || '');
     } else {
       setEditingClient(null);
       setName('');
       setPhone('');
       setResponsible('');
       setStatus('active');
+      setValue('');
     }
     setIsDialogOpen(true);
   };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    const finalValue = value === '' ? undefined : Number(value);
     if (editingClient) {
-      await updateClient(editingClient.id, { name, phone, responsible, status });
+      await updateClient(editingClient.id, { name, phone, responsible, status, value: finalValue });
       toast.success('Cliente atualizado com sucesso!');
     } else {
-      await addClient({ name, phone, responsible, status });
+      await addClient({ name, phone, responsible, status, value: finalValue });
       toast.success('Cliente adicionado com sucesso!');
     }
     setIsDialogOpen(false);
@@ -109,6 +113,10 @@ export default function ClientsPage() {
                 <Input id="phone" value={phone} onChange={e => setPhone(e.target.value)} required />
               </div>
               <div className="space-y-2">
+                <Label htmlFor="value">Valor</Label>
+                <Input id="value" type="number" step="0.01" value={value} onChange={e => setValue(e.target.value === '' ? '' : Number(e.target.value))} placeholder="0,00" />
+              </div>
+              <div className="space-y-2">
                 <Label>Status</Label>
                 <Select value={status} onValueChange={(v) => v && setStatus(v as 'active' | 'inactive')}>
                   <SelectTrigger>
@@ -131,7 +139,7 @@ export default function ClientsPage() {
       <Card>
         <CardHeader>
           <div className="relative">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-400" />
             <Input
               placeholder="Buscar por nome ou responsável..."
               className="pl-8 max-w-sm"
@@ -147,6 +155,7 @@ export default function ClientsPage() {
                 <TableHead>Cliente</TableHead>
                 <TableHead>Responsável</TableHead>
                 <TableHead>Telefone</TableHead>
+                <TableHead>Valor</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Ações</TableHead>
               </TableRow>
@@ -154,7 +163,7 @@ export default function ClientsPage() {
             <TableBody>
               {filteredClients.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center h-24 text-muted-foreground">
+                  <TableCell colSpan={6} className="text-center h-24 text-muted-foreground">
                     Nenhum cliente encontrado.
                   </TableCell>
                 </TableRow>
@@ -165,16 +174,19 @@ export default function ClientsPage() {
                     <TableCell>{client.responsible}</TableCell>
                     <TableCell>{client.phone}</TableCell>
                     <TableCell>
-                      <Badge variant={client.status === 'active' ? 'default' : 'secondary'} className={client.status === 'active' ? 'bg-blue-100 text-blue-700 hover:bg-blue-100' : ''}>
+                      {client.value ? new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(client.value) : '-'}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={client.status === 'active' ? 'default' : 'secondary'} className={client.status === 'active' ? 'bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20' : ''}>
                         {client.status === 'active' ? 'Ativo' : 'Inativo'}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
                       <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(client)}>
-                        <Edit2 className="h-4 w-4 text-blue-600" />
+                        <Edit2 className="h-4 w-4 text-blue-400" />
                       </Button>
                       <Button variant="ghost" size="icon" onClick={() => handleDelete(client.id)}>
-                        <Trash2 className="h-4 w-4 text-red-600" />
+                        <Trash2 className="h-4 w-4 text-rose-400" />
                       </Button>
                     </TableCell>
                   </TableRow>

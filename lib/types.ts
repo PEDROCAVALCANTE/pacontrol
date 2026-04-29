@@ -3,6 +3,7 @@ export type Client = {
   name: string;
   phone: string;
   responsible: string;
+  value?: number;
   status: 'active' | 'inactive';
   createdAt: number;
 };

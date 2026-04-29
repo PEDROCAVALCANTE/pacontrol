@@ -158,7 +158,7 @@ export default function SubscriptionsPage() {
       <Card>
         <CardHeader>
           <div className="relative">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-400" />
             <Input
               placeholder="Buscar por cliente..."
               className="pl-8 max-w-sm"
@@ -199,11 +199,11 @@ export default function SubscriptionsPage() {
                       {sub.status === 'inactive' ? (
                         <Badge variant="outline">Inativa</Badge>
                       ) : sub.paid ? (
-                        <Badge className="bg-emerald-100 text-emerald-800 hover:bg-emerald-100 border-none">Pago</Badge>
+                        <Badge className="bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border-none">Pago</Badge>
                       ) : isLate ? (
-                        <Badge className="bg-rose-100 text-rose-800 hover:bg-rose-100 border-none">Atrasado</Badge>
+                        <Badge className="bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 border-none">Atrasado</Badge>
                       ) : (
-                        <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100 border-none">Aberto</Badge>
+                        <Badge className="bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 border-none">Aberto</Badge>
                       )}
                     </TableCell>
                     <TableCell className="text-right flex items-center justify-end gap-2">
@@ -220,7 +220,7 @@ export default function SubscriptionsPage() {
                         </Button>
                        )}
                       <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(sub)}>
-                        <Edit2 className="h-4 w-4 text-blue-600" />
+                        <Edit2 className="h-4 w-4 text-blue-400" />
                       </Button>
                     </TableCell>
                   </TableRow>

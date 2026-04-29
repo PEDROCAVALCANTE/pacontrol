@@ -28,7 +28,7 @@ export default function LoginPage() {
     <div className="flex flex-col items-center justify-center min-h-screen bg-black p-4 sm:p-8 relative overflow-hidden">
       <div className="w-40 h-20 sm:w-48 sm:h-24 relative mb-6 sm:mb-8 flex items-center justify-center z-10">
         <Image 
-          src="https://iili.io/BsHmxFR.png" 
+          src="https://iili.io/Bs2OL4s.png" 
           alt="Logo" 
           fill
           className="object-contain"

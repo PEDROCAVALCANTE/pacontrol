@@ -116,7 +116,7 @@ export default function ExpensesPage() {
               <CardTitle className="text-sm font-medium">Despesas do Mês Atual</CardTitle>
            </CardHeader>
            <CardContent>
-              <div className="text-2xl font-bold text-red-600">
+              <div className="text-2xl font-bold text-rose-400">
                 {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(currentMonthExpensesTotal)}
               </div>
            </CardContent>
@@ -149,12 +149,12 @@ export default function ExpensesPage() {
                   <TableRow key={expense.id}>
                     <TableCell>{format(new Date(expense.date), 'dd/MM/yyyy')}</TableCell>
                     <TableCell className="font-medium">{expense.description}</TableCell>
-                    <TableCell className="text-right text-red-600 font-medium">
+                    <TableCell className="text-right text-rose-400 font-medium">
                       -{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(expense.amount)}
                     </TableCell>
                     <TableCell className="text-right">
                       <Button variant="ghost" size="icon" onClick={() => handleDelete(expense.id)}>
-                        <Trash2 className="h-4 w-4 text-slate-400 hover:text-red-600" />
+                        <Trash2 className="h-4 w-4 text-slate-400 hover:text-rose-400" />
                       </Button>
                     </TableCell>
                   </TableRow>
