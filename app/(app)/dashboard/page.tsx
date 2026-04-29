@@ -4,10 +4,11 @@ import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { getClients, getSubscriptions, getExpenses, updateSubscription } from '@/lib/data-store';
 import { Client, Expense, Subscription } from '@/lib/types';
-import { DollarSign, AlertCircle, TrendingUp, CreditCard, Activity, Check, X, MessageCircle } from 'lucide-react';
+import { DollarSign, AlertCircle, TrendingUp, CreditCard, Activity, Check, X, MessageCircle, Info } from 'lucide-react';
 import { format, isAfter, setDate, startOfDay, endOfMonth, startOfMonth, isBefore, subMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { toast } from 'sonner';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
@@ -24,6 +25,7 @@ export default function DashboardPage() {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadData();
   }, []);
 
@@ -46,14 +48,14 @@ export default function DashboardPage() {
   
   // Calculations
   const activeSubs = subs.filter(s => s.status === 'active');
-  const expectedRevenue = activeSubs.reduce((acc, sub) => acc + sub.monthlyValue, 0);
-  const receivedRevenue = activeSubs.filter(s => s.payments?.[currentMonthKey] || s.paid).reduce((acc, sub) => acc + sub.monthlyValue, 0);
+  const expectedRevenue = activeSubs.reduce((acc, sub) => acc + Number(sub.monthlyValue), 0);
+  const receivedRevenue = activeSubs.filter(s => s.payments?.[currentMonthKey] || s.paid).reduce((acc, sub) => acc + Number(sub.monthlyValue), 0);
   const openRevenue = expectedRevenue - receivedRevenue;
 
   const currentMonthExpenses = expenses.filter(e => {
     const d = new Date(e.date);
-    return isAfter(d, startOfMonth(today)) && isBefore(d, endOfMonth(today));
-  }).reduce((acc, e) => acc + e.amount, 0);
+    return d.getMonth() === today.getMonth() && d.getFullYear() === today.getFullYear();
+  }).reduce((acc, e) => acc + Number(e.amount), 0);
 
   const realIncome = receivedRevenue - currentMonthExpenses;
 
@@ -86,67 +88,119 @@ export default function DashboardPage() {
         </div>
       </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
-        <Card className="p-1">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 p-4 pb-2">
-            <p className="text-xs text-slate-400 uppercase tracking-widest">Receita Prevista</p>
-            <TrendingUp className="h-4 w-4 text-slate-400" />
-          </CardHeader>
-          <CardContent className="p-4 pt-0">
-            <div className="text-2xl font-bold">
-              {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(expectedRevenue)}
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card className="p-1">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 p-4 pb-2">
-            <p className="text-xs text-emerald-400 uppercase tracking-widest">Recebido</p>
-            <DollarSign className="h-4 w-4 text-emerald-400" />
-          </CardHeader>
-          <CardContent className="p-4 pt-0">
-            <div className="text-2xl font-bold text-emerald-400">
-              {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(receivedRevenue)}
-            </div>
-          </CardContent>
-        </Card>
+      <TooltipProvider>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+          <Card className="p-1">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 p-4 pb-2">
+              <div className="flex items-center gap-1.5">
+                <p className="text-xs text-slate-400 uppercase tracking-widest">Receita Prevista</p>
+                <Tooltip>
+                  <TooltipTrigger type="button" className="focus:outline-none">
+                    <Info className="h-3.5 w-3.5 text-slate-500 cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Soma do valor de todas as assinaturas ativas.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+              <TrendingUp className="h-4 w-4 text-slate-400" />
+            </CardHeader>
+            <CardContent className="p-4 pt-0">
+              <div className="text-2xl font-bold">
+                {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(expectedRevenue)}
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="p-1">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 p-4 pb-2">
+              <div className="flex items-center gap-1.5">
+                <p className="text-xs text-emerald-400 uppercase tracking-widest">Recebido</p>
+                <Tooltip>
+                  <TooltipTrigger type="button" className="focus:outline-none">
+                    <Info className="h-3.5 w-3.5 text-emerald-500/70 cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Total de pagamentos recebidos no mês atual.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+              <DollarSign className="h-4 w-4 text-emerald-400" />
+            </CardHeader>
+            <CardContent className="p-4 pt-0">
+              <div className="text-2xl font-bold text-emerald-400">
+                {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(receivedRevenue)}
+              </div>
+            </CardContent>
+          </Card>
 
-        <Card className="p-1 border-rose-500/30">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 p-4 pb-2">
-            <p className="text-xs text-rose-400 uppercase tracking-widest">Em Aberto</p>
-            <AlertCircle className="h-4 w-4 text-rose-400" />
-          </CardHeader>
-          <CardContent className="p-4 pt-0">
-            <div className="text-2xl font-bold text-rose-400">
-              {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(openRevenue)}
-            </div>
-          </CardContent>
-        </Card>
+          <Card className="p-1 border-rose-500/30">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 p-4 pb-2">
+              <div className="flex items-center gap-1.5">
+                <p className="text-xs text-rose-400 uppercase tracking-widest">Em Aberto</p>
+                <Tooltip>
+                  <TooltipTrigger type="button" className="focus:outline-none">
+                    <Info className="h-3.5 w-3.5 text-rose-500/70 cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Total pendente de recebimento (Receita Prevista - Recebido).</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+              <AlertCircle className="h-4 w-4 text-rose-400" />
+            </CardHeader>
+            <CardContent className="p-4 pt-0">
+              <div className="text-2xl font-bold text-rose-400">
+                {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(openRevenue)}
+              </div>
+            </CardContent>
+          </Card>
 
-        <Card className="p-1">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 p-4 pb-2">
-            <p className="text-xs text-slate-400 uppercase tracking-widest">Despesas</p>
-            <CreditCard className="h-4 w-4 text-slate-400" />
-          </CardHeader>
-          <CardContent className="p-4 pt-0">
-            <div className="text-2xl font-bold">
-              {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(currentMonthExpenses)}
-            </div>
-          </CardContent>
-        </Card>
+          <Card className="p-1">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 p-4 pb-2">
+              <div className="flex items-center gap-1.5">
+                <p className="text-xs text-slate-400 uppercase tracking-widest">Despesas</p>
+                <Tooltip>
+                  <TooltipTrigger type="button" className="focus:outline-none">
+                    <Info className="h-3.5 w-3.5 text-slate-500 cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Total de despesas cadastradas para o mês atual.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+              <CreditCard className="h-4 w-4 text-slate-400" />
+            </CardHeader>
+            <CardContent className="p-4 pt-0">
+              <div className="text-2xl font-bold">
+                {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(currentMonthExpenses)}
+              </div>
+            </CardContent>
+          </Card>
 
-        <Card className={`p-1 border ${realIncome >= 0 ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-rose-500/5 border-rose-500/20'}`}>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 p-4 pb-2">
-            <p className={`text-xs uppercase tracking-widest ${realIncome >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>Margem de Lucro</p>
-            <Activity className={`h-4 w-4 ${realIncome >= 0 ? 'text-emerald-400' : 'text-rose-400'}`} />
-          </CardHeader>
-          <CardContent className="p-4 pt-0">
-            <div className={`text-2xl font-bold ${realIncome >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
-              {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(realIncome)}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+          <Card className={`p-1 border ${realIncome >= 0 ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-rose-500/5 border-rose-500/20'}`}>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 p-4 pb-2">
+              <div className="flex items-center gap-1.5">
+                <p className={`text-xs uppercase tracking-widest ${realIncome >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>Margem de Lucro</p>
+                <Tooltip>
+                  <TooltipTrigger type="button" className="focus:outline-none">
+                    <Info className={`h-3.5 w-3.5 cursor-help ${realIncome >= 0 ? 'text-emerald-500/70' : 'text-rose-500/70'}`} />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Lucro líquido do mês atual (Recebido - Despesas).</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+              <Activity className={`h-4 w-4 ${realIncome >= 0 ? 'text-emerald-400' : 'text-rose-400'}`} />
+            </CardHeader>
+            <CardContent className="p-4 pt-0">
+              <div className={`text-2xl font-bold ${realIncome >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(realIncome)}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </TooltipProvider>
 
       <div className="flex flex-col gap-4">
         <div className="flex items-center justify-between px-2">

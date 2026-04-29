@@ -37,6 +37,7 @@ export default function SubscriptionsPage() {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadData();
   }, []);
 
@@ -120,7 +121,8 @@ export default function SubscriptionsPage() {
       toast.success('Marcado como pendente.');
     } else {
       newPayments[currentMonthKey] = true;
-      await updateSubscription(sub.id, { payments: newPayments, paid: true, lastPaymentDate: Date.now() });
+      const now = new Date().getTime();
+      await updateSubscription(sub.id, { payments: newPayments, paid: true, lastPaymentDate: now });
       toast.success('Marcado como pago!');
     }
     loadData();

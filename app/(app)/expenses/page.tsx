@@ -67,9 +67,9 @@ export default function ExpensesPage() {
   const currentMonthExpensesTotal = expenses
     .filter(e => {
       const d = new Date(e.date);
-      return isAfter(d, startOfMonth(today)) && isBefore(d, endOfMonth(today));
+      return d.getMonth() === today.getMonth() && d.getFullYear() === today.getFullYear();
     })
-    .reduce((acc, e) => acc + e.amount, 0);
+    .reduce((acc, e) => acc + Number(e.amount), 0);
 
   return (
     <div className="space-y-6">
