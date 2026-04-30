@@ -45,7 +45,7 @@ export function AppSidebar() {
       <SidebarHeader className="border-b px-6 py-6 border-[rgba(255,255,255,0.08)] group-data-[collapsible=icon]:px-2 group-data-[collapsible=icon]:py-4">
         <div className="flex justify-center items-center">
           {/* Default Logo */}
-          <div className="w-32 h-12 relative flex items-center justify-center group-data-[collapsible=icon]:hidden">
+          <div className="w-48 h-16 relative flex items-center justify-center group-data-[collapsible=icon]:hidden">
             <Image 
               src="https://iili.io/Bs2OL4s.png" 
               alt="PA Control" 
