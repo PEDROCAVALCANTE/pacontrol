@@ -31,14 +31,14 @@ export function AppSidebar() {
   const { logout } = useAuth();
 
   const navItems = [
-    { title: 'Dashboard', url: '/dashboard', icon: LayoutDashboard, iconColor: 'text-indigo-400', activeBg: 'bg-indigo-500/10', activeText: 'text-indigo-400' },
-    { title: 'Assinaturas', url: '/subscriptions', icon: CreditCard, iconColor: 'text-emerald-400', activeBg: 'bg-emerald-500/10', activeText: 'text-emerald-400' },
-    { title: 'Despesas', url: '/expenses', icon: Receipt, iconColor: 'text-amber-400', activeBg: 'bg-amber-500/10', activeText: 'text-amber-400' },
+    { title: 'Dashboard', url: '/dashboard', icon: LayoutDashboard, iconColor: 'group-[[data-active=true]]:text-[#3B82F6] text-[#9CA3AF] group-hover:text-[#3B82F6]', activeBg: 'data-[active=true]:bg-[#3B82F6]/10', activeText: 'data-[active=true]:text-[#3B82F6]' },
+    { title: 'Assinaturas', url: '/subscriptions', icon: CreditCard, iconColor: 'group-[[data-active=true]]:text-[#8B5CF6] text-[#9CA3AF] group-hover:text-[#8B5CF6]', activeBg: 'data-[active=true]:bg-[#8B5CF6]/10', activeText: 'data-[active=true]:text-[#8B5CF6]' },
+    { title: 'Despesas', url: '/expenses', icon: Receipt, iconColor: 'group-[[data-active=true]]:text-[#FF6A00] text-[#9CA3AF] group-hover:text-[#FF6A00]', activeBg: 'data-[active=true]:bg-[#FF6A00]/10', activeText: 'data-[active=true]:text-[#FF6A00]' },
   ];
 
   return (
-    <Sidebar className="border-r border-slate-800 glass text-slate-400">
-      <SidebarHeader className="border-b px-6 py-6 border-slate-800/50">
+    <Sidebar className="border-r border-[rgba(255,255,255,0.08)] bg-[#0B0F14] text-[#9CA3AF]">
+      <SidebarHeader className="border-b px-6 py-6 border-[rgba(255,255,255,0.08)]">
         <div className="flex justify-center items-center">
           <div className="w-32 h-12 relative flex items-center justify-center">
             <Image 
@@ -54,7 +54,7 @@ export function AppSidebar() {
       <SidebarContent className="px-2 pt-4">
         <SidebarGroup>
           <SidebarGroupContent>
-            <SidebarMenu className="space-y-1">
+            <SidebarMenu className="space-y-2">
               {navItems.map((item) => {
                 const isActive = pathname.startsWith(item.url);
                 return (
@@ -62,11 +62,11 @@ export function AppSidebar() {
                     <SidebarMenuButton 
                       isActive={isActive} 
                       tooltip={item.title} 
-                      className={`sidebar-link px-3 py-5 rounded-lg text-slate-400 font-medium ${isActive ? `${item.activeBg} ${item.activeText}` : 'hover:bg-slate-800/50'}`}
+                      className={`sidebar-link group px-3 py-5 rounded-xl text-[#E5E7EB] font-medium transition-all duration-300 ${isActive ? `${item.activeBg} ${item.activeText}` : 'hover:bg-[#111827]'}`}
                       render={<Link href={item.url} />}
                     >
-                        <item.icon className={`w-5 h-5 mr-3 ${item.iconColor}`} />
-                        <span className="text-base">{item.title}</span>
+                        <item.icon className={`w-5 h-5 mr-3 transition-colors ${item.iconColor}`} strokeWidth={1.5} />
+                        <span className="text-[15px]">{item.title}</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 );
@@ -75,15 +75,15 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter className="border-t border-slate-800/50 p-4">
-        <div className="p-4 bg-slate-800/50 rounded-xl border border-slate-700/50 mb-4 text-center">
-          <p className="text-sm font-medium text-white">Pedro & Angra</p>
+      <SidebarFooter className="border-t border-[rgba(255,255,255,0.08)] p-4">
+        <div className="p-4 bg-[#111827] rounded-xl border border-[rgba(255,255,255,0.08)] mb-4 text-center">
+          <p className="text-sm font-semibold text-[#E5E7EB]">Pedro & Angra</p>
         </div>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton onClick={logout} className="text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 transition-colors py-4 px-3 rounded-lg">
-              <LogOut className="w-5 h-5 mr-3" />
-              <span className="text-base">Sair</span>
+            <SidebarMenuButton onClick={logout} className="text-[#EF4444] hover:text-[#EF4444] hover:bg-[#EF4444]/10 transition-colors py-4 px-3 rounded-xl font-medium">
+              <LogOut className="w-5 h-5 mr-3" strokeWidth={1.5} />
+              <span className="text-[15px]">Sair</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

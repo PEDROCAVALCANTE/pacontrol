@@ -26,7 +26,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-[#101114] p-4 sm:p-8 relative overflow-hidden font-sans">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-[#0B0F14] p-4 sm:p-8 relative overflow-hidden font-sans">
       
       {/* Refined Background Gradients & Patterns */}
       <div className="absolute inset-0 z-0 flex items-center justify-center overflow-hidden pointer-events-none">
@@ -40,13 +40,13 @@ export default function LoginPage() {
         />
 
         {/* Ambient Glows */}
-        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-amber-500/10 blur-[120px]" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-amber-600/5 blur-[120px]" />
+        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-[#1E293B] blur-[150px]" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-[#6D28D9]/20 blur-[150px]" />
         
         {/* Abstract lines simulation via multiple SVGs or pseudo elements, keeping simple with radial gradients */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full border border-white/5 opacity-50 blur-[1px]" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1200px] h-[1200px] rounded-full border border-white/5 opacity-30 blur-[2px]" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1600px] h-[1600px] rounded-full border border-white/5 opacity-20 blur-[3px]" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full border border-white/[0.03] opacity-50 blur-[1px]" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1200px] h-[1200px] rounded-full border border-white/[0.03] opacity-30 blur-[2px]" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1600px] h-[1600px] rounded-full border border-[rgba(255,255,255,0.08)] opacity-20 blur-[3px]" />
       </div>
 
       <div className="w-40 h-16 sm:w-48 sm:h-20 relative mb-8 flex items-center justify-center z-10 drop-shadow-lg">
@@ -61,32 +61,32 @@ export default function LoginPage() {
         />
       </div>
 
-      <Card className="w-full max-w-sm shadow-2xl bg-[#1E1F24]/80 backdrop-blur-2xl relative z-10 border-white/5 p-4 sm:p-6 rounded-2xl">
+      <Card className="w-full max-w-sm shadow-2xl bg-[#0F172A]/80 backdrop-blur-2xl relative z-10 border-[rgba(255,255,255,0.08)] p-6 sm:p-8 rounded-2xl">
         <form onSubmit={handleLogin}>
-          <CardHeader className="p-0 pb-6 text-center space-y-2">
-            <CardTitle className="text-2xl font-semibold tracking-tight text-white">
+          <CardHeader className="p-0 pb-8 text-center space-y-3">
+            <CardTitle className="text-2xl font-bold tracking-wide text-[#E5E7EB]">
               Bem-vindo
             </CardTitle>
-            <CardDescription className="text-slate-400">
+            <CardDescription className="text-[#9CA3AF] text-sm">
               Faça login na sua conta para continuar
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-5 p-0">
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-sm font-medium text-slate-300">Endereço de E-mail</Label>
+          <CardContent className="space-y-6 p-0">
+            <div className="space-y-2.5">
+              <Label htmlFor="email" className="text-sm font-medium text-[#E5E7EB] tracking-wide">Endereço de E-mail</Label>
               <Input 
                 id="email" 
                 type="email" 
                 placeholder="nome@empresa.com" 
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="bg-[#101114]/80 border-white/10 text-white placeholder:text-slate-500 focus-visible:ring-amber-500/50 hover:border-white/20 transition-colors rounded-xl h-12 px-4 shadow-inner"
+                className="bg-[#111827] border-[rgba(255,255,255,0.08)] text-[#E5E7EB] placeholder-[#9CA3AF] focus-visible:ring-[#3B82F6]/50 hover:border-[rgba(255,255,255,0.15)] transition-colors rounded-xl h-12 px-4 shadow-inner"
                 required 
               />
             </div>
-            <div className="space-y-2">
+            <div className="space-y-2.5">
               <div className="flex items-center justify-between">
-                <Label htmlFor="password" className="text-sm font-medium text-slate-300">Senha</Label>
+                <Label htmlFor="password" className="text-sm font-medium text-[#E5E7EB] tracking-wide">Senha</Label>
                 {/* Optional logic for forgot password could go here */}
                 {/* <a href="#" className="text-xs text-amber-500 hover:text-amber-400 transition-colors">Esqueceu a senha?</a> */}
               </div>
@@ -96,14 +96,14 @@ export default function LoginPage() {
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="bg-[#101114]/80 border-white/10 text-white placeholder:text-slate-500 focus-visible:ring-amber-500/50 hover:border-white/20 transition-colors rounded-xl h-12 px-4 shadow-inner"
+                className="bg-[#111827] border-[rgba(255,255,255,0.08)] text-[#E5E7EB] placeholder-[#9CA3AF] focus-visible:ring-[#3B82F6]/50 hover:border-[rgba(255,255,255,0.15)] transition-colors rounded-xl h-12 px-4 shadow-inner"
                 required 
               />
             </div>
           </CardContent>
           <CardFooter className="p-0 pt-8">
             <Button 
-              className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-white border-0 py-6 text-base font-medium shadow-[0_0_20px_rgba(245,158,11,0.25)] hover:shadow-[0_0_25px_rgba(245,158,11,0.4)] transition-all rounded-xl" 
+              className="w-full bg-[#FF6A00] hover:bg-[#E65F00] text-white py-6 text-[15px] font-semibold tracking-wide shadow-[0_4px_24px_rgba(255,106,0,0.3)] hover:shadow-[0_6px_32px_rgba(255,106,0,0.4)] transition-all rounded-xl border-none" 
               type="submit" 
               disabled={loading}
             >
@@ -121,10 +121,8 @@ export default function LoginPage() {
       </Card>
       
       {/* Decorative tiny text at bottom */}
-      <div className="absolute bottom-6 text-slate-500 text-xs font-medium tracking-wide z-10 flex gap-4">
+      <div className="absolute bottom-6 text-[#9CA3AF] text-xs font-medium tracking-[0.05em] z-10 flex gap-4">
         <span>© 2026 PA Control</span>
-        {/* <span>Privacidade</span> */}
-        {/* <span>Termos</span> */}
       </div>
     </div>
   );
