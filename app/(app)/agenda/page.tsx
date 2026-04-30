@@ -113,7 +113,12 @@ export default function AgendaPage() {
       {/* Month Navigation & Summary */}
       <div className="flex flex-col md:flex-row gap-6 items-center justify-between bg-[#0F172A]/80 backdrop-blur-xl border border-[rgba(255,255,255,0.08)] p-4 sm:p-6 rounded-2xl shadow-lg">
         <div className="flex items-center justify-between w-full md:w-auto gap-4">
-          <Button variant="outline" size="icon" onClick={handlePrevMonth} className="border-[rgba(255,255,255,0.08)] bg-[#111827] text-[#E5E7EB] hover:bg-[#1E293B]">
+          <Button 
+            variant="outline" 
+            size="icon" 
+            onClick={handlePrevMonth} 
+            disabled={currentViewMonth.getFullYear() < 2026 || (currentViewMonth.getFullYear() === 2026 && currentViewMonth.getMonth() <= 4)}
+            className="border-[rgba(255,255,255,0.08)] bg-[#111827] text-[#E5E7EB] hover:bg-[#1E293B] disabled:opacity-50 disabled:cursor-not-allowed">
             <ChevronLeft className="w-5 h-5" />
           </Button>
           <div className="flex flex-col items-center min-w-[120px]">

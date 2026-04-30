@@ -56,8 +56,11 @@ export default function DashboardPage() {
 
   const realIncome = receivedRevenue - totalExpenses;
 
-  // Generate last 6 months for the elegant table
-  const monthList = Array.from({ length: 6 }).map((_, i) => subMonths(today, 5 - i));
+  // Generate last 6 months for the elegant table, but only from system start (May 2026)
+  const systemStartDate = new Date(2026, 4, 1); // May 2026
+  const monthList = Array.from({ length: 6 })
+    .map((_, i) => subMonths(today, 5 - i))
+    .filter(d => d.getFullYear() > 2026 || (d.getFullYear() === 2026 && d.getMonth() >= 4));
 
   const togglePayment = async (sub: Subscription, monthDate: Date) => {
     const mKey = format(monthDate, 'yyyy-MM');
@@ -281,6 +284,69 @@ export default function DashboardPage() {
             </table>
           </CardContent>
         </Card>
+      </div>
+
+      <div className="flex flex-col gap-4 mt-8">
+        <div className="flex items-center justify-between px-2">
+          <h3 className="font-bold flex items-center gap-2 text-white">O que posso melhorar?</h3>
+          <span className="text-xs text-slate-400 font-medium">Insights baseados no mês atual</span>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {openRevenue > 0 ? (
+            <Card className="bg-rose-500/5 border-rose-500/20 p-4">
+              <div className="flex gap-3">
+                <AlertCircle className="w-5 h-5 text-rose-400 shrink-0 mt-0.5" />
+                <div>
+                  <h4 className="text-sm font-semibold text-rose-400 mb-1">Recuperação de Inadimplência</h4>
+                  <p className="text-xs text-slate-400">Você tem <strong>{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(openRevenue)}</strong> em aberto neste mês. Utilize os botões do WhatsApp na tabela acima para lembrar os clientes amigavelmente.</p>
+                </div>
+              </div>
+            </Card>
+          ) : (
+            <Card className="bg-emerald-500/5 border-emerald-500/20 p-4">
+              <div className="flex gap-3">
+                <TrendingUp className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
+                <div>
+                  <h4 className="text-sm font-semibold text-emerald-400 mb-1">Inadimplência Controlada</h4>
+                  <p className="text-xs text-slate-400">Excelente! Todos os pagamentos do mês estão em dia. Considere oferecer descontos ou vantagens para pagamento antecipado em planos trimestrais ou semestrais.</p>
+                </div>
+              </div>
+            </Card>
+          )}
+
+          {totalExpenses > (receivedRevenue * 0.7) ? (
+            <Card className="bg-amber-500/5 border-amber-500/20 p-4">
+              <div className="flex gap-3">
+                <AlertCircle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+                <div>
+                  <h4 className="text-sm font-semibold text-amber-500 mb-1">Atenção às Despesas</h4>
+                  <p className="text-xs text-slate-400">Suas despesas representam uma alta porcentagem da sua receita ({receivedRevenue > 0 ? Math.round((totalExpenses / receivedRevenue) * 100) : 100}%). Revise seus custos variáveis para aumentar a margem de lucro.</p>
+                </div>
+              </div>
+            </Card>
+          ) : (
+            <Card className="bg-slate-800/40 border-slate-700/50 p-4">
+              <div className="flex gap-3">
+                <Activity className="w-5 h-5 text-blue-400 shrink-0 mt-0.5" />
+                <div>
+                  <h4 className="text-sm font-semibold text-blue-400 mb-1">Planejamento e Caixa</h4>
+                  <p className="text-xs text-slate-400">Seus custos parecem dentro do controle. Aproveite a folga no fluxo de caixa para montar uma reserva de emergência para manutenções ou melhorias do espaço/serviços.</p>
+                </div>
+              </div>
+            </Card>
+          )}
+
+          <Card className="bg-purple-500/5 border-purple-500/20 p-4">
+            <div className="flex gap-3">
+              <Info className="w-5 h-5 text-purple-400 shrink-0 mt-0.5" />
+              <div>
+                <h4 className="text-sm font-semibold text-purple-400 mb-1">Crescimento de Clientes</h4>
+                <p className="text-xs text-slate-400">Você tem <strong>{activeSubs.length}</strong> assinaturas ativas agora. Peça indicações para os clientes mais engajados para aumentar sua base de receita recorrente sem gastar com anúncios.</p>
+              </div>
+            </div>
+          </Card>
+        </div>
       </div>
     </div>
   );
