@@ -27,6 +27,33 @@ export default function AgendaPage() {
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     loadData();
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignorar se o usuário estiver digitando em algum campo
+      if (
+        document.activeElement?.tagName === 'INPUT' ||
+        document.activeElement?.tagName === 'TEXTAREA' ||
+        document.activeElement?.tagName === 'SELECT'
+      ) {
+        return;
+      }
+
+      if (e.key === 'ArrowLeft') {
+        setCurrentViewMonth(prev => {
+          const newDate = subMonths(prev, 1);
+          // Prevenindo navegar antes de Maio de 2026, igual ao botão desabilitado na UI
+          if (newDate.getFullYear() < 2026 || (newDate.getFullYear() === 2026 && newDate.getMonth() < 4)) {
+            return prev;
+          }
+          return newDate;
+        });
+      } else if (e.key === 'ArrowRight') {
+        setCurrentViewMonth(prev => addMonths(prev, 1));
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
   const getSubClientName = (sub: Subscription) => {
