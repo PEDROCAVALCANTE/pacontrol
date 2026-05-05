@@ -42,10 +42,10 @@ export function AppSidebar() {
 
   return (
     <Sidebar collapsible="icon" className="border-r border-[rgba(255,255,255,0.08)] bg-[#0B0F14] text-[#9CA3AF]">
-      <SidebarHeader className="border-b px-6 py-6 border-[rgba(255,255,255,0.08)] group-data-[collapsible=icon]:px-2 group-data-[collapsible=icon]:py-4">
+      <SidebarHeader className="border-b px-4 py-4 border-[rgba(255,255,255,0.08)] group-data-[collapsible=icon]:px-2 group-data-[collapsible=icon]:py-4">
         <div className="flex justify-center items-center">
           {/* Default Logo */}
-          <div className="w-48 h-16 relative flex items-center justify-center group-data-[collapsible=icon]:hidden">
+          <div className="w-24 h-8 relative flex items-center justify-center group-data-[collapsible=icon]:hidden">
             <Image 
               src="https://iili.io/Bs2OL4s.png" 
               alt="PA Control" 
@@ -55,7 +55,7 @@ export function AppSidebar() {
             />
           </div>
           {/* Collapsed Icon */}
-          <div className="hidden group-data-[collapsible=icon]:flex w-8 h-8 rounded-lg bg-[#FF6A00] items-center justify-center text-white font-bold tracking-tighter shadow-[0_0_15px_rgba(255,106,0,0.4)]">
+          <div className="hidden group-data-[collapsible=icon]:flex w-8 h-8 rounded-lg bg-[#FF6A00] items-center justify-center text-white text-xs font-bold tracking-tighter shadow-[0_0_15px_rgba(255,106,0,0.4)]">
             PA
           </div>
         </div>
@@ -63,7 +63,7 @@ export function AppSidebar() {
       <SidebarContent className="px-2 pt-4">
         <SidebarGroup>
           <SidebarGroupContent>
-            <SidebarMenu className="space-y-2">
+            <SidebarMenu className="space-y-1">
               {navItems.map((item) => {
                 const isActive = pathname.startsWith(item.url);
                 return (
@@ -74,11 +74,11 @@ export function AppSidebar() {
                       onClick={() => {
                         if (isMobile) setOpenMobile(false);
                       }}
-                      className={`sidebar-link group gap-3 px-3 py-5 rounded-xl text-[#E5E7EB] font-medium transition-all duration-300 ${isActive ? `${item.activeBg} ${item.activeText}` : 'hover:bg-[#111827]'}`}
+                      className={`sidebar-link group gap-3 px-3 py-2.5 rounded-lg text-[#E5E7EB] text-[13px] font-medium transition-all duration-150 ease-out active:scale-[0.97] ${isActive ? `${item.activeBg} ${item.activeText}` : 'hover:bg-[#111827]'}`}
                       render={<Link href={item.url} />}
                     >
-                        <item.icon className={`w-5 h-5 transition-colors ${item.iconColor}`} strokeWidth={1.5} />
-                        <span className="text-[15px]">{item.title}</span>
+                        <item.icon className={`w-4 h-4 transition-colors ${item.iconColor}`} strokeWidth={2} />
+                        <span className="truncate">{item.title}</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 );
@@ -87,15 +87,12 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter className="border-t border-[rgba(255,255,255,0.08)] p-4 group-data-[collapsible=icon]:p-2">
-        <div className="p-4 bg-[#111827] rounded-xl border border-[rgba(255,255,255,0.08)] mb-4 text-center group-data-[collapsible=icon]:hidden">
-          <p className="text-sm font-semibold text-[#E5E7EB]">Pedro & Angra</p>
-        </div>
+      <SidebarFooter className="border-t border-[rgba(255,255,255,0.08)] p-3 group-data-[collapsible=icon]:p-2">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton onClick={logout} className="text-[#EF4444] group gap-3 hover:text-[#EF4444] hover:bg-[#EF4444]/10 transition-colors py-4 px-3 rounded-xl font-medium">
-              <LogOut className="w-5 h-5" strokeWidth={1.5} />
-              <span className="text-[15px] group-data-[collapsible=icon]:hidden">Sair</span>
+            <SidebarMenuButton onClick={logout} className="text-[#9CA3AF] group gap-3 hover:text-[#EF4444] hover:bg-[#EF4444]/10 transition-all duration-150 ease-out active:scale-[0.97] py-2.5 px-3 rounded-lg text-[13px] font-medium">
+              <LogOut className="w-4 h-4" strokeWidth={2} />
+              <span className="group-data-[collapsible=icon]:hidden">Sair</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

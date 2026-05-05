@@ -90,7 +90,7 @@ export default function DashboardPage() {
 
       <TooltipProvider>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
-          <Card className="p-1">
+          <Card className="p-1 group hover:border-slate-700 transition-colors duration-300 cursor-default">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 p-4 pb-2">
               <div className="flex items-center gap-1.5">
                 <p className="text-xs text-slate-400 uppercase tracking-widest">Receita Prevista</p>
@@ -103,7 +103,7 @@ export default function DashboardPage() {
                   </TooltipContent>
                 </Tooltip>
               </div>
-              <TrendingUp className="h-4 w-4 text-slate-400" />
+              <TrendingUp className="h-5 w-5 text-slate-400 group-hover:text-blue-400 transition-all duration-200 ease-out group-hover:-translate-y-1 group-hover:scale-110" />
             </CardHeader>
             <CardContent className="p-4 pt-0">
               <div className="text-2xl font-bold">
@@ -112,7 +112,7 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
           
-          <Card className="p-1">
+          <Card className="p-1 group hover:border-emerald-500/50 transition-colors duration-300 cursor-default">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 p-4 pb-2">
               <div className="flex items-center gap-1.5">
                 <p className="text-xs text-emerald-400 uppercase tracking-widest">Recebido</p>
@@ -125,7 +125,7 @@ export default function DashboardPage() {
                   </TooltipContent>
                 </Tooltip>
               </div>
-              <DollarSign className="h-4 w-4 text-emerald-400" />
+              <DollarSign className="h-5 w-5 text-emerald-400 transition-transform duration-200 ease-out group-hover:-translate-y-1 group-hover:scale-110" />
             </CardHeader>
             <CardContent className="p-4 pt-0">
               <div className="text-2xl font-bold text-emerald-400">
@@ -134,7 +134,7 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
 
-          <Card className="p-1 border-rose-500/30">
+          <Card className="p-1 border-rose-500/30 group hover:border-rose-500/70 transition-colors duration-300 cursor-default">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 p-4 pb-2">
               <div className="flex items-center gap-1.5">
                 <p className="text-xs text-rose-400 uppercase tracking-widest">Em Aberto</p>
@@ -147,7 +147,7 @@ export default function DashboardPage() {
                   </TooltipContent>
                 </Tooltip>
               </div>
-              <AlertCircle className="h-4 w-4 text-rose-400" />
+              <AlertCircle className="h-5 w-5 text-rose-400 transition-transform duration-200 ease-out group-hover:-translate-y-1 group-hover:scale-110" />
             </CardHeader>
             <CardContent className="p-4 pt-0">
               <div className="text-2xl font-bold text-rose-400">
@@ -156,7 +156,7 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
 
-          <Card className="p-1">
+          <Card className="p-1 group hover:border-slate-700 transition-colors duration-300 cursor-default">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 p-4 pb-2">
               <div className="flex items-center gap-1.5">
                 <p className="text-xs text-slate-400 uppercase tracking-widest">Despesas</p>
@@ -169,7 +169,7 @@ export default function DashboardPage() {
                   </TooltipContent>
                 </Tooltip>
               </div>
-              <CreditCard className="h-4 w-4 text-slate-400" />
+              <CreditCard className="h-5 w-5 text-slate-400 transition-transform duration-200 ease-out group-hover:-translate-y-1 group-hover:rotate-[8deg] group-hover:scale-110" />
             </CardHeader>
             <CardContent className="p-4 pt-0">
               <div className="text-2xl font-bold">
@@ -178,7 +178,7 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
 
-          <Card className={`p-1 border ${realIncome >= 0 ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-rose-500/5 border-rose-500/20'}`}>
+          <Card className={`p-1 border group cursor-default transition-colors duration-300 ${realIncome >= 0 ? 'bg-emerald-500/5 border-emerald-500/20 hover:border-emerald-500/50' : 'bg-rose-500/5 border-rose-500/20 hover:border-rose-500/50'}`}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 p-4 pb-2">
               <div className="flex items-center gap-1.5">
                 <p className={`text-xs uppercase tracking-widest ${realIncome >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>Margem de Lucro</p>
@@ -191,7 +191,7 @@ export default function DashboardPage() {
                   </TooltipContent>
                 </Tooltip>
               </div>
-              <Activity className={`h-4 w-4 ${realIncome >= 0 ? 'text-emerald-400' : 'text-rose-400'}`} />
+              <Activity className={`h-5 w-5 ${realIncome >= 0 ? 'text-emerald-400' : 'text-rose-400'} transition-transform duration-200 ease-out group-hover:-translate-y-1 group-hover:scale-110`} />
             </CardHeader>
             <CardContent className="p-4 pt-0">
               <div className={`text-2xl font-bold ${realIncome >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
