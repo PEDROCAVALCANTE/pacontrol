@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { getClients, addClient, updateClient, deleteClient } from '@/lib/data-store';
 import { Client } from '@/lib/types';
-import { Search, Plus, Edit2, Trash2 } from 'lucide-react';
+import { Search, Plus, Edit2, Trash2, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function ClientsPage() {
@@ -19,6 +19,9 @@ export default function ClientsPage() {
   const [search, setSearch] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingClient, setEditingClient] = useState<Client | null>(null);
+
+  type SortKey = 'name' | 'responsible' | 'status';
+  const [sortConfig, setSortConfig] = useState<{ key: SortKey; direction: 'asc' | 'desc' } | null>(null);
 
   // Form State
   const [name, setName] = useState('');
@@ -82,6 +85,26 @@ export default function ClientsPage() {
     c.name.toLowerCase().includes(search.toLowerCase()) || 
     c.responsible.toLowerCase().includes(search.toLowerCase())
   );
+
+  const sortedClients = [...filteredClients].sort((a, b) => {
+    if (!sortConfig) return 0;
+    
+    const { key, direction } = sortConfig;
+    const aValue = a[key] || '';
+    const bValue = b[key] || '';
+    
+    if (aValue < bValue) return direction === 'asc' ? -1 : 1;
+    if (aValue > bValue) return direction === 'asc' ? 1 : -1;
+    return 0;
+  });
+
+  const handleSort = (key: SortKey) => {
+    let direction: 'asc' | 'desc' = 'asc';
+    if (sortConfig && sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
 
   return (
     <div className="space-y-6">
@@ -152,23 +175,35 @@ export default function ClientsPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Cliente</TableHead>
-                <TableHead>Responsável</TableHead>
+                <TableHead className="cursor-pointer select-none hover:text-white" onClick={() => handleSort('name')}>
+                  <div className="flex items-center gap-1">
+                    Cliente {sortConfig?.key === 'name' ? (sortConfig.direction === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />) : <ArrowUpDown className="h-3 w-3 opacity-50" />}
+                  </div>
+                </TableHead>
+                <TableHead className="cursor-pointer select-none hover:text-white" onClick={() => handleSort('responsible')}>
+                  <div className="flex items-center gap-1">
+                    Responsável {sortConfig?.key === 'responsible' ? (sortConfig.direction === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />) : <ArrowUpDown className="h-3 w-3 opacity-50" />}
+                  </div>
+                </TableHead>
                 <TableHead>Telefone</TableHead>
                 <TableHead>Valor</TableHead>
-                <TableHead>Status</TableHead>
+                <TableHead className="cursor-pointer select-none hover:text-white" onClick={() => handleSort('status')}>
+                  <div className="flex items-center gap-1">
+                    Status {sortConfig?.key === 'status' ? (sortConfig.direction === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />) : <ArrowUpDown className="h-3 w-3 opacity-50" />}
+                  </div>
+                </TableHead>
                 <TableHead className="text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredClients.length === 0 ? (
+              {sortedClients.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={6} className="text-center h-24 text-muted-foreground">
                     Nenhum cliente encontrado.
                   </TableCell>
                 </TableRow>
               ) : (
-                filteredClients.map((client) => (
+                sortedClients.map((client) => (
                   <TableRow key={client.id}>
                     <TableCell className="font-medium">{client.name}</TableCell>
                     <TableCell>{client.responsible}</TableCell>
