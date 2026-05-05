@@ -26,7 +26,7 @@ export function WhatsAppReminderButton({
     // Usar código do país 55 (Brasil) por padrão se não tiver
     const whatsappNumber = cleanPhone.startsWith('55') 
       ? cleanPhone 
-      : \`55\${cleanPhone}\`;
+      : `55${cleanPhone}`;
 
     const formattedAmount = new Intl.NumberFormat('pt-BR', {
       style: 'currency',
@@ -34,19 +34,19 @@ export function WhatsAppReminderButton({
     }).format(amount);
 
     // Mensagem elegante de lembrete
-    const message = \`Olá, \${clientName}! Tudo bem? ✨
+    const message = `Olá, ${clientName}! Tudo bem? ✨
 
 Passando aqui de forma rápida para compartilhar os dados de nossa próxima renovação, programada para o dia 10.
 
-*Valor:* \${formattedAmount}
+*Valor:* ${formattedAmount}
 *Chave PIX:* 62991803975 (Nubank)
 
 Sua assinatura garante a continuidade dos nossos serviços sem interrupções.
 
-Qualquer dúvida, estou totalmente à disposição. Tenha um excelente dia! 🙏\`;
+Qualquer dúvida, estou totalmente à disposição. Tenha um excelente dia! 🙏`;
 
     const encodedMessage = encodeURIComponent(message);
-    const whatsappUrl = \`https://wa.me/\${whatsappNumber}?text=\${encodedMessage}\`;
+    const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodedMessage}`;
     
     window.open(whatsappUrl, '_blank');
   };
