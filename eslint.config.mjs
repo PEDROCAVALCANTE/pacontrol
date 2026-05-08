@@ -1,11 +1,10 @@
-import { defineConfig } from "eslint/config";
-import next from "eslint-config-next";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
+import eslint from '@eslint/js';
+import tseslint from 'typescript-eslint';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-export default defineConfig([{
-    extends: [...next],
-}]);
+export default tseslint.config(
+  {
+    ignores: ['dist/**', 'node_modules/**', '.next/**']
+  },
+  eslint.configs.recommended,
+  ...tseslint.configs.recommended,
+);

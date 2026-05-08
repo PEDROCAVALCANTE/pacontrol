@@ -4,6 +4,7 @@ export type Client = {
   phone: string;
   responsible: string;
   value?: number;
+  dueDay?: number;
   status: 'active' | 'inactive';
   createdAt: number;
 };

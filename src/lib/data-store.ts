@@ -97,6 +97,16 @@ export async function updateSubscription(id: string, sub: Partial<Subscription>)
   }
 }
 
+export async function deleteSubscription(id: string): Promise<void> {
+  const path = `subscriptions/${id}`;
+  try {
+    await deleteDoc(doc(db, 'subscriptions', id));
+  } catch (error) {
+    handleFirestoreError(error, OperationType.DELETE, path);
+    throw error;
+  }
+}
+
 // Expenses Layer
 export async function getExpenses(): Promise<Expense[]> {
   const path = 'expenses';
