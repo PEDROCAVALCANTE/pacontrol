@@ -159,7 +159,7 @@ export default function AgendaPage() {
           </Button>
         </div>
 
-        <div className="flex w-full md:w-auto justify-between gap-4 sm:gap-8 pt-4 md:pt-0 border-t border-border md:border-none">
+        <div className="flex w-full md:w-auto justify-between gap-4 sm:gap-8 pt-4 md:pt-0">
            <div className="flex flex-col items-center md:items-end">
              <span className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wider">Previsto</span>
              <span className="text-sm sm:text-lg font-bold text-foreground">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(expectedTotal)}</span>
@@ -178,15 +178,15 @@ export default function AgendaPage() {
       {/* Agenda List */}
       <div className="grid gap-4">
         {scheduledItems.length === 0 ? (
-          <div className="text-center py-12 bg-card/40 border border-border rounded-2xl">
+          <div className="text-center py-12 bg-card/40 rounded-2xl">
             <CalendarIcon className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-50" />
             <p className="text-muted-foreground">Nenhuma assinatura ativa para agendamento.</p>
           </div>
         ) : (
           scheduledItems.map(item => (
-            <div key={item.id} className="flex flex-col sm:flex-row items-center justify-between bg-card border border-border p-5 rounded-2xl transition-all hover:bg-muted/50 group">
+            <div key={item.id} className="flex flex-col sm:flex-row items-center justify-between glass-panel p-5 rounded-2xl transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.3)] group">
                <div className="flex items-center gap-6 w-full sm:w-auto">
-                 <div className="flex flex-col items-center justify-center bg-background w-14 h-14 rounded-xl border border-border shadow-inner">
+                 <div className="flex flex-col items-center justify-center bg-background w-14 h-14 rounded-xl shadow-inner">
                     <span className="text-xs text-muted-foreground font-medium uppercase">Dia</span>
                     <span className="text-xl font-bold text-foreground">{item.dueDay}</span>
                  </div>

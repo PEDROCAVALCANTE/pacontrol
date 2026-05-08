@@ -33,7 +33,7 @@ export default function LoginPage() {
         </div>
       </div>
 
-      <Card className="w-full max-w-sm shadow-xl glass-panel relative z-10 p-6 sm:p-8 rounded-xl border-t border-l border-r-0 border-b-0 border-white/5">
+      <Card className="w-full max-w-sm shadow-xl glass-panel relative z-10 p-6 sm:p-8 rounded-xl">
         <form onSubmit={handleLogin}>
           <CardHeader className="p-0 pb-8 text-center space-y-2">
             <CardTitle className="text-2xl font-bold tracking-tight text-foreground">
@@ -52,7 +52,7 @@ export default function LoginPage() {
                 placeholder="nome@empresa.com" 
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="bg-transparent border-input focus-visible:ring-primary transition-colors rounded-lg h-11 px-4"
+                className="h-11 px-4"
                 required 
               />
             </div>
@@ -66,7 +66,7 @@ export default function LoginPage() {
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="bg-transparent border-input focus-visible:ring-primary transition-colors rounded-lg h-11 px-4"
+                className="h-11 px-4"
                 required 
               />
             </div>

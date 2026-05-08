@@ -112,7 +112,7 @@ export default function DashboardPage() {
           </motion.div>
           
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-            <Card className="rounded-xl bg-card border shadow-sm">
+            <Card className="rounded-xl">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <div className="flex items-center gap-2">
                   <p className="text-xs font-medium text-emerald-500 uppercase tracking-wider">Recebido</p>
@@ -136,7 +136,7 @@ export default function DashboardPage() {
           </motion.div>
 
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-            <Card className="rounded-xl bg-card border shadow-sm">
+            <Card className="rounded-xl">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <div className="flex items-center gap-2">
                   <p className="text-xs font-medium text-rose-500 uppercase tracking-wider">Em Aberto</p>
@@ -160,7 +160,7 @@ export default function DashboardPage() {
           </motion.div>
 
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
-            <Card className="rounded-xl bg-card border shadow-sm">
+            <Card className="rounded-xl">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <div className="flex items-center gap-2">
                   <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Despesas</p>
@@ -184,7 +184,7 @@ export default function DashboardPage() {
           </motion.div>
 
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
-            <Card className="rounded-xl bg-card border shadow-sm">
+            <Card className="rounded-xl">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <div className="flex items-center gap-2">
                   <p className="text-xs font-medium text-emerald-500 uppercase tracking-wider">Lucro Líquido</p>
@@ -214,10 +214,10 @@ export default function DashboardPage() {
         <p className="text-xs text-muted-foreground font-medium">Últimos {monthList.length} meses</p>
       </div>
       <div className="flex flex-col gap-4 font-sans">
-        <Card className="overflow-hidden">
-          <CardContent className="p-0 overflow-x-auto">
-            <table className="w-full text-sm text-left min-w-[800px]">
-              <thead className="border-b text-muted-foreground">
+        <div className="overflow-hidden">
+          <div className="p-0 overflow-x-auto">
+            <table className="w-full text-sm text-left min-w-[800px] border-separate border-spacing-y-2 p-2">
+              <thead className="text-muted-foreground">
                 <tr>
                   <th className="px-6 py-4 font-medium text-xs uppercase tracking-wider">Cliente</th>
                   <th className="px-6 py-4 font-medium text-xs uppercase tracking-wider w-24 text-center">Ação</th>
@@ -228,14 +228,14 @@ export default function DashboardPage() {
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-border">
+              <tbody>
                 {activeSubs.map(sub => {
                   const isCurrentMonthPaid = sub.payments?.[currentMonthKey] || sub.paid;
                   const cPhone = getSubClientPhone(sub).replace(/\D/g, '');
                   const shouldMessage = !isCurrentMonthPaid && isTodayAfter10th;
 
                   return (
-                    <tr key={sub.id} className="hover:bg-muted/30 transition-colors">
+                    <tr key={sub.id} className="glass-panel shadow-sm hover:shadow-[0_12px_40px_-8px_rgba(0,0,0,0.5)] hover:-translate-y-[2px] transition-all duration-300 [&>td:first-child]:rounded-l-xl [&>td:last-child]:rounded-r-xl">
                       <td className="px-6 py-4">
                         <p className="font-medium text-foreground">{getSubClientName(sub)}</p>
                         <p className="text-xs text-muted-foreground mt-0.5">
@@ -288,8 +288,8 @@ export default function DashboardPage() {
                 )}
               </tbody>
             </table>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
 
     </div>

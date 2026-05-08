@@ -271,7 +271,7 @@ export default function SubscriptionsPage() {
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, scale: 0.95 }}
-                      className="border-b border-border/50 hover:bg-muted/30 transition-colors"
+                      className=""
                     >
                       <TableCell>
                         <p className="font-medium whitespace-nowrap">{getSubClientName(sub)}</p>

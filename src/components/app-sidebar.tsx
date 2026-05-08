@@ -39,7 +39,7 @@ export function AppSidebar() {
 
   return (
     <Sidebar collapsible="icon" className="border-r-0 glass-panel shadow-lg min-h-screen text-card-foreground">
-      <SidebarHeader className="border-b px-4 py-4 border-border group-data-[collapsible=icon]:px-2 group-data-[collapsible=icon]:py-4">
+      <SidebarHeader className="px-4 py-4 group-data-[collapsible=icon]:px-2 group-data-[collapsible=icon]:py-4">
         <div className="flex justify-center items-center">
           {/* Default Logo */}
           <div className="w-full relative flex flex-col items-center justify-center gap-3 px-2 py-2 group-data-[collapsible=icon]:hidden">
@@ -71,7 +71,7 @@ export function AppSidebar() {
                       className={`sidebar-link group gap-3 px-3 py-2.5 rounded-md text-foreground/70 text-[13px] font-medium transition-all duration-150 ease-out active:scale-[0.97] ${isActive ? `${item.activeBg} ${item.activeText}` : 'hover:bg-accent hover:text-accent-foreground'}`}
                       render={<Link to={item.url} />}
                     >
-                        <item.icon className={`w-[18px] h-[18px] transition-colors ${item.iconColor}`} strokeWidth={1.5} />
+                        <item.icon className={`w-[18px] h-[18px] transition-all duration-300 group-hover:scale-110 group-hover:-rotate-3 ${item.iconColor}`} strokeWidth={1.5} />
                         <span className="truncate">{item.title}</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -81,7 +81,7 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter className="border-t border-border p-3 group-data-[collapsible=icon]:p-2">
+      <SidebarFooter className="p-3 group-data-[collapsible=icon]:p-2">
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton onClick={logout} className="text-foreground/70 group gap-3 hover:text-destructive hover:bg-destructive/10 transition-all duration-150 ease-out active:scale-[0.97] py-2.5 px-3 rounded-md text-[13px] font-medium">
