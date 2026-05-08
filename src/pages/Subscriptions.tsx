@@ -232,90 +232,95 @@ export default function SubscriptionsPage() {
           </div>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Cliente</TableHead>
-                <TableHead>Valor</TableHead>
-                <TableHead>Vencimento</TableHead>
-                <TableHead>Situação (Mês Atual)</TableHead>
-                <TableHead className="text-right">Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              <AnimatePresence mode="popLayout">
-              {filteredSubs.length === 0 ? (
-                <motion.tr
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                >
-                  <TableCell colSpan={5} className="text-center h-24 text-muted-foreground">
-                    Nenhuma assinatura encontrada.
-                  </TableCell>
-                </motion.tr>
-              ) : (
-                filteredSubs.map((sub) => {
-                  const dueDate = setDate(today, sub.dueDay);
-                  const isPaid = sub.payments?.[currentMonthKey] || sub.paid;
-                  const isLate = sub.status === 'active' && !isPaid && isBefore(dueDate, today);
-                  const cPhone = getSubClientPhone(sub).replace(/\D/g, '');
-                  
-                  return (
-                  <motion.tr 
-                    key={sub.id}
-                    layout
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.95 }}
-                    className="border-b border-border/50 hover:bg-muted/30 transition-colors"
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Cliente</TableHead>
+                  <TableHead>Telefone</TableHead>
+                  <TableHead>Serviço/Produto</TableHead>
+                  <TableHead>Valor</TableHead>
+                  <TableHead>Vencimento</TableHead>
+                  <TableHead>Situação (Mês Atual)</TableHead>
+                  <TableHead className="text-right">Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <AnimatePresence mode="popLayout">
+                {filteredSubs.length === 0 ? (
+                  <motion.tr
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
                   >
-                    <TableCell>
-                      <p className="font-medium">{getSubClientName(sub)}</p>
-                      {sub.service && <p className="text-xs text-muted-foreground">{sub.service}</p>}
-                    </TableCell>
-                    <TableCell>{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(sub.monthlyValue)}</TableCell>
-                    <TableCell>Dia {sub.dueDay}</TableCell>
-                    <TableCell>
-                      {sub.status === 'inactive' ? (
-                        <Badge variant="outline">Inativa</Badge>
-                      ) : isPaid ? (
-                        <Badge className="bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border-none">Pago</Badge>
-                      ) : isLate ? (
-                        <Badge className="bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 border-none">Atrasado</Badge>
-                      ) : (
-                        <Badge className="bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 border-none">Aberto</Badge>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-right flex items-center justify-end gap-2">
-                       {sub.status === 'active' && (
-                         <Button 
-                          variant={isPaid ? 'outline' : 'default'} 
-                          size="sm" 
-                          className={isPaid ? 'text-muted-foreground' : 'bg-emerald-600 hover:bg-emerald-700 text-white'}
-                          onClick={() => markAsPaid(sub)}
-                          title={isPaid ? 'Desmarcar pagamento' : 'Marcar como pago'}
-                        >
-                          <CheckCircle2 className="h-4 w-4 mr-1" />
-                          {isPaid ? 'Desfazer' : 'Pagar'}
-                        </Button>
-                       )}
-                      <Button variant="ghost" size="icon" onClick={() => handleSendReminder(sub)} title="Enviar Lembrete WhatsApp">
-                        <MessageCircle className="h-4 w-4 text-emerald-500" />
-                      </Button>
-                      <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(sub)}>
-                        <Edit2 className="h-4 w-4 text-blue-400" />
-                      </Button>
-                      <Button variant="ghost" size="icon" onClick={() => handleDelete(sub.id)}>
-                        <Trash2 className="h-4 w-4 text-rose-400" />
-                      </Button>
+                    <TableCell colSpan={7} className="text-center h-24 text-muted-foreground">
+                      Nenhuma assinatura encontrada.
                     </TableCell>
                   </motion.tr>
-                )})
-              )}
-              </AnimatePresence>
-            </TableBody>
-          </Table>
+                ) : (
+                  filteredSubs.map((sub) => {
+                    const dueDate = setDate(today, sub.dueDay);
+                    const isPaid = sub.payments?.[currentMonthKey] || sub.paid;
+                    const isLate = sub.status === 'active' && !isPaid && isBefore(dueDate, today);
+                    const cPhone = getSubClientPhone(sub);
+                    
+                    return (
+                    <motion.tr 
+                      key={sub.id}
+                      layout
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                      className="border-b border-border/50 hover:bg-muted/30 transition-colors"
+                    >
+                      <TableCell>
+                        <p className="font-medium whitespace-nowrap">{getSubClientName(sub)}</p>
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap">{cPhone || '-'}</TableCell>
+                      <TableCell className="whitespace-nowrap">{sub.service || '-'}</TableCell>
+                      <TableCell className="whitespace-nowrap">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(sub.monthlyValue)}</TableCell>
+                      <TableCell className="whitespace-nowrap">Dia {sub.dueDay}</TableCell>
+                      <TableCell className="whitespace-nowrap">
+                        {sub.status === 'inactive' ? (
+                          <Badge variant="outline">Inativa</Badge>
+                        ) : isPaid ? (
+                          <Badge className="bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border-none">Pago</Badge>
+                        ) : isLate ? (
+                          <Badge className="bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 border-none">Atrasado</Badge>
+                        ) : (
+                          <Badge className="bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 border-none">Aberto</Badge>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-right flex items-center justify-end gap-2 whitespace-nowrap">
+                         {sub.status === 'active' && (
+                           <Button 
+                            variant={isPaid ? 'outline' : 'default'} 
+                            size="sm" 
+                            className={isPaid ? 'text-muted-foreground' : 'bg-emerald-600 hover:bg-emerald-700 text-white'}
+                            onClick={() => markAsPaid(sub)}
+                            title={isPaid ? 'Desmarcar pagamento' : 'Marcar como pago'}
+                          >
+                            <CheckCircle2 className="h-4 w-4 mr-1 md:mr-2" />
+                            <span className="hidden sm:inline">{isPaid ? 'Desfazer' : 'Pagar'}</span>
+                          </Button>
+                         )}
+                        <Button variant="ghost" size="icon" onClick={() => handleSendReminder(sub)} title="Enviar Lembrete WhatsApp">
+                          <MessageCircle className="h-4 w-4 text-emerald-500" />
+                        </Button>
+                        <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(sub)}>
+                          <Edit2 className="h-4 w-4 text-blue-400" />
+                        </Button>
+                        <Button variant="ghost" size="icon" onClick={() => handleDelete(sub.id)}>
+                          <Trash2 className="h-4 w-4 text-rose-400" />
+                        </Button>
+                      </TableCell>
+                    </motion.tr>
+                  )})
+                )}
+                </AnimatePresence>
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
     </div>

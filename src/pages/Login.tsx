@@ -28,7 +28,7 @@ export default function LoginPage() {
       <div className="mb-8 flex items-center justify-center z-10 drop-shadow-lg">
         <div className="flex flex-col items-center gap-3">
           <div className="w-16 h-16 rounded-xl flex items-center justify-center overflow-hidden">
-            <img src="https://iili.io/BsHmxFR.png" alt="PA Control Logo" className="w-full h-full object-cover" />
+            <img src="https://iili.io/Bs2OL4s.png" alt="PA Control Logo" className="w-full h-full object-cover" />
           </div>
         </div>
       </div>

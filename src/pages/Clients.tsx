@@ -198,83 +198,85 @@ export default function ClientsPage() {
           </div>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="cursor-pointer select-none hover:text-foreground" onClick={() => handleSort('name')}>
-                  <div className="flex items-center gap-1">
-                    Cliente {sortConfig?.key === 'name' ? (sortConfig.direction === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />) : <ArrowUpDown className="h-3 w-3 opacity-50" />}
-                  </div>
-                </TableHead>
-                <TableHead className="cursor-pointer select-none hover:text-foreground" onClick={() => handleSort('responsible')}>
-                  <div className="flex items-center gap-1">
-                    Responsável {sortConfig?.key === 'responsible' ? (sortConfig.direction === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />) : <ArrowUpDown className="h-3 w-3 opacity-50" />}
-                  </div>
-                </TableHead>
-                <TableHead>Telefone</TableHead>
-                <TableHead>Valor</TableHead>
-                <TableHead>Vencimento</TableHead>
-                <TableHead className="cursor-pointer select-none hover:text-foreground" onClick={() => handleSort('status')}>
-                  <div className="flex items-center gap-1">
-                    Status {sortConfig?.key === 'status' ? (sortConfig.direction === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />) : <ArrowUpDown className="h-3 w-3 opacity-50" />}
-                  </div>
-                </TableHead>
-                <TableHead className="text-right">Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              <AnimatePresence mode="popLayout">
-              {sortedClients.length === 0 ? (
-                <motion.tr
-                   initial={{ opacity: 0 }}
-                   animate={{ opacity: 1 }}
-                   exit={{ opacity: 0 }}
-                >
-                  <TableCell colSpan={6} className="text-center h-24 text-muted-foreground">
-                    Nenhum cliente encontrado.
-                  </TableCell>
-                </motion.tr>
-              ) : (
-                sortedClients.map((client) => (
-                  <motion.tr 
-                    key={client.id}
-                    layout
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.95 }}
-                    className="border-b border-border/50 hover:bg-muted/30 transition-colors"
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="cursor-pointer select-none hover:text-foreground whitespace-nowrap" onClick={() => handleSort('name')}>
+                    <div className="flex items-center gap-1">
+                      Cliente {sortConfig?.key === 'name' ? (sortConfig.direction === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />) : <ArrowUpDown className="h-3 w-3 opacity-50" />}
+                    </div>
+                  </TableHead>
+                  <TableHead className="cursor-pointer select-none hover:text-foreground whitespace-nowrap" onClick={() => handleSort('responsible')}>
+                    <div className="flex items-center gap-1">
+                      Responsável {sortConfig?.key === 'responsible' ? (sortConfig.direction === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />) : <ArrowUpDown className="h-3 w-3 opacity-50" />}
+                    </div>
+                  </TableHead>
+                  <TableHead className="whitespace-nowrap">Telefone</TableHead>
+                  <TableHead className="whitespace-nowrap">Valor</TableHead>
+                  <TableHead className="whitespace-nowrap">Vencimento</TableHead>
+                  <TableHead className="cursor-pointer select-none hover:text-foreground whitespace-nowrap" onClick={() => handleSort('status')}>
+                    <div className="flex items-center gap-1">
+                      Status {sortConfig?.key === 'status' ? (sortConfig.direction === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />) : <ArrowUpDown className="h-3 w-3 opacity-50" />}
+                    </div>
+                  </TableHead>
+                  <TableHead className="text-right whitespace-nowrap">Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <AnimatePresence mode="popLayout">
+                {sortedClients.length === 0 ? (
+                  <motion.tr
+                     initial={{ opacity: 0 }}
+                     animate={{ opacity: 1 }}
+                     exit={{ opacity: 0 }}
                   >
-                    <TableCell className="font-medium">{client.name}</TableCell>
-                    <TableCell>{client.responsible}</TableCell>
-                    <TableCell>{client.phone}</TableCell>
-                    <TableCell>
-                      {client.value ? new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(client.value) : '-'}
-                    </TableCell>
-                    <TableCell>
-                      {client.dueDay ? `Dia ${client.dueDay}` : '-'}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={client.status === 'active' ? 'default' : 'secondary'} className={client.status === 'active' ? 'bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20' : ''}>
-                        {client.status === 'active' ? 'Ativo' : 'Inativo'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button variant="ghost" size="icon" onClick={() => handleSendReminder(client)} title="Enviar Lembrete WhatsApp">
-                        <MessageCircle className="h-4 w-4 text-emerald-500" />
-                      </Button>
-                      <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(client)}>
-                        <Edit2 className="h-4 w-4 text-blue-400" />
-                      </Button>
-                      <Button variant="ghost" size="icon" onClick={() => handleDelete(client.id)}>
-                        <Trash2 className="h-4 w-4 text-rose-400" />
-                      </Button>
+                    <TableCell colSpan={7} className="text-center h-24 text-muted-foreground">
+                      Nenhum cliente encontrado.
                     </TableCell>
                   </motion.tr>
-                ))
-              )}
-              </AnimatePresence>
-            </TableBody>
-          </Table>
+                ) : (
+                  sortedClients.map((client) => (
+                    <motion.tr 
+                      key={client.id}
+                      layout
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                      className="border-b border-border/50 hover:bg-muted/30 transition-colors"
+                    >
+                      <TableCell className="font-medium whitespace-nowrap">{client.name}</TableCell>
+                      <TableCell className="whitespace-nowrap">{client.responsible}</TableCell>
+                      <TableCell className="whitespace-nowrap">{client.phone}</TableCell>
+                      <TableCell className="whitespace-nowrap">
+                        {client.value ? new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(client.value) : '-'}
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap">
+                        {client.dueDay ? `Dia ${client.dueDay}` : '-'}
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap">
+                        <Badge variant={client.status === 'active' ? 'default' : 'secondary'} className={client.status === 'active' ? 'bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20' : ''}>
+                          {client.status === 'active' ? 'Ativo' : 'Inativo'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right whitespace-nowrap">
+                        <Button variant="ghost" size="icon" onClick={() => handleSendReminder(client)} title="Enviar Lembrete WhatsApp">
+                          <MessageCircle className="h-4 w-4 text-emerald-500" />
+                        </Button>
+                        <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(client)}>
+                          <Edit2 className="h-4 w-4 text-blue-400" />
+                        </Button>
+                        <Button variant="ghost" size="icon" onClick={() => handleDelete(client.id)}>
+                          <Trash2 className="h-4 w-4 text-rose-400" />
+                        </Button>
+                      </TableCell>
+                    </motion.tr>
+                  ))
+                )}
+                </AnimatePresence>
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
     </div>

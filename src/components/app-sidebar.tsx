@@ -44,13 +44,13 @@ export function AppSidebar() {
           {/* Default Logo */}
           <div className="w-full relative flex flex-col items-center justify-center gap-3 px-2 py-2 group-data-[collapsible=icon]:hidden">
             <div className="w-20 h-20 rounded-lg flex items-center justify-center overflow-hidden">
-              <img src="https://iili.io/BsHmxFR.png" alt="PA Control Logo" className="w-full h-full object-cover" />
+              <img src="https://iili.io/Bs2OL4s.png" alt="PA Control Logo" className="w-full h-full object-cover" />
             </div>
             <span className="font-semibold tracking-tight text-xl mt-2">PA Control</span>
           </div>
           {/* Collapsed Icon */}
           <div className="hidden group-data-[collapsible=icon]:flex w-10 h-10 rounded-lg items-center justify-center overflow-hidden">
-            <img src="https://iili.io/BsHmxFR.png" alt="PA Control Logo" className="w-full h-full object-cover" />
+            <img src="https://iili.io/Bs2OL4s.png" alt="PA Control Logo" className="w-full h-full object-cover" />
           </div>
         </div>
       </SidebarHeader>

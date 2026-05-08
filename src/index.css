@@ -16,7 +16,7 @@
     --card: hsl(0 0% 100%);
     --card-foreground: hsl(240 10% 4%);
 
-    --popover: hsl(0 0% 100%);
+    --popover: hsl(0 0% 98%);
     --popover-foreground: hsl(240 10% 4%);
 
     --primary: hsl(210 100% 50%); /* Using a blue base for light mode instead of orange */
@@ -42,32 +42,32 @@
   }
 
   .dark {
-    --background: hsl(0 0% 0%);
+    --background: hsl(0 0% 5%);
     --foreground: hsl(0 0% 95%);
 
-    --card: hsl(0 0% 4% / 0.8);
-    --card-foreground: hsl(0 0% 90%);
+    --card: hsl(0 0% 12%);
+    --card-foreground: hsl(0 0% 95%);
 
-    --popover: hsl(0 0% 3%);
-    --popover-foreground: hsl(0 0% 90%);
+    --popover: hsl(0 0% 5%);
+    --popover-foreground: hsl(0 0% 95%);
 
-    --primary: hsl(0 0% 100%);
+    --primary: hsl(210 100% 60%);
     --primary-foreground: hsl(0 0% 0%);
 
-    --secondary: hsl(0 0% 10%);
-    --secondary-foreground: hsl(0 0% 90%);
+    --secondary: hsl(0 0% 18%);
+    --secondary-foreground: hsl(0 0% 98%);
 
-    --muted: hsl(0 0% 8%);
-    --muted-foreground: hsl(0 0% 60%);
+    --muted: hsl(0 0% 18%);
+    --muted-foreground: hsl(0 0% 70%);
 
-    --accent: hsl(0 0% 15%);
-    --accent-foreground: hsl(0 0% 95%);
+    --accent: hsl(0 0% 18%);
+    --accent-foreground: hsl(0 0% 98%);
 
-    --destructive: hsl(0 62.8% 30.6%);
+    --destructive: hsl(0 62.8% 40%);
     --destructive-foreground: hsl(0 0% 98%);
 
-    --border: hsl(0 0% 15%);
-    --input: hsl(0 0% 15%);
+    --border: hsl(0 0% 25%);
+    --input: hsl(0 0% 25%);
     --ring: hsl(0 0% 30%);
   }
 }

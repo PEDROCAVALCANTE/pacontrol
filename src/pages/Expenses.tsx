@@ -152,56 +152,58 @@ export default function ExpensesPage() {
            <CardTitle>Histórico de Despesas</CardTitle>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Data</TableHead>
-                <TableHead>Descrição</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Valor</TableHead>
-                <TableHead className="text-right">Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {expenses.length === 0 ? (
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center h-24 text-muted-foreground">
-                    Nenhuma despesa registrada.
-                  </TableCell>
+                  <TableHead className="whitespace-nowrap">Data</TableHead>
+                  <TableHead className="whitespace-nowrap">Descrição</TableHead>
+                  <TableHead className="whitespace-nowrap">Status</TableHead>
+                  <TableHead className="text-right whitespace-nowrap">Valor</TableHead>
+                  <TableHead className="text-right whitespace-nowrap">Ações</TableHead>
                 </TableRow>
-              ) : (
-                expenses.map((expense) => (
-                  <TableRow key={expense.id}>
-                    <TableCell>{format(new Date(expense.date), 'dd/MM/yyyy')}</TableCell>
-                    <TableCell className="font-medium">{expense.description}</TableCell>
-                    <TableCell>
-                      <Badge 
-                        variant="outline" 
-                        className={`cursor-pointer ${expense.paid ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 'bg-amber-500/10 text-amber-500 border-amber-500/20'}`}
-                        onClick={() => handleTogglePaid(expense)}
-                      >
-                        {expense.paid ? (
-                          <span className="flex items-center gap-1"><CheckCircle2 className="h-3 w-3" /> Paga</span>
-                        ) : (
-                          <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> Pendente</span>
-                        )}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right font-medium">
-                      <span className={expense.paid ? 'text-rose-400' : 'text-muted-foreground'}>
-                        {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(expense.amount)}
-                      </span>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button variant="ghost" size="icon" onClick={() => handleDelete(expense.id)}>
-                        <Trash2 className="h-4 w-4 text-muted-foreground hover:text-rose-400" />
-                      </Button>
+              </TableHeader>
+              <TableBody>
+                {expenses.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center h-24 text-muted-foreground">
+                      Nenhuma despesa registrada.
                     </TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+                ) : (
+                  expenses.map((expense) => (
+                    <TableRow key={expense.id}>
+                      <TableCell className="whitespace-nowrap">{format(new Date(expense.date), 'dd/MM/yyyy')}</TableCell>
+                      <TableCell className="font-medium whitespace-nowrap">{expense.description}</TableCell>
+                      <TableCell className="whitespace-nowrap">
+                        <Badge 
+                          variant="outline" 
+                          className={`cursor-pointer ${expense.paid ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 'bg-amber-500/10 text-amber-500 border-amber-500/20'}`}
+                          onClick={() => handleTogglePaid(expense)}
+                        >
+                          {expense.paid ? (
+                            <span className="flex items-center gap-1 whitespace-nowrap"><CheckCircle2 className="h-3 w-3" /> Paga</span>
+                          ) : (
+                            <span className="flex items-center gap-1 whitespace-nowrap"><Clock className="h-3 w-3" /> Pendente</span>
+                          )}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right font-medium whitespace-nowrap">
+                        <span className={expense.paid ? 'text-rose-400' : 'text-muted-foreground'}>
+                          {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(expense.amount)}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-right whitespace-nowrap">
+                        <Button variant="ghost" size="icon" onClick={() => handleDelete(expense.id)}>
+                          <Trash2 className="h-4 w-4 text-muted-foreground hover:text-rose-400" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
     </div>
