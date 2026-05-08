@@ -1,14 +1,12 @@
 import { useLocation, Link } from 'react-router-dom';
 import { 
-  LayoutDashboard, 
-  Users, 
-  CreditCard, 
-  Receipt,
-  Settings,
-  LogOut,
-  Layers,
-  Calendar
-} from 'lucide-react';
+  DashboardIcon, 
+  PersonIcon, 
+  CardStackIcon, 
+  FileTextIcon,
+  ExitIcon,
+  CalendarIcon
+} from '@radix-ui/react-icons';
 import { 
   Sidebar, 
   SidebarContent, 
@@ -30,11 +28,11 @@ export function AppSidebar() {
   const { setOpenMobile, isMobile } = useSidebar();
 
   const navItems = [
-    { title: 'Dashboard', url: '/dashboard', icon: LayoutDashboard, iconColor: 'text-blue-500 group-hover:text-blue-400', activeBg: 'data-[active=true]:bg-accent', activeText: 'data-[active=true]:text-accent-foreground' },
-    { title: 'Agenda', url: '/agenda', icon: Calendar, iconColor: 'text-indigo-500 group-hover:text-indigo-400', activeBg: 'data-[active=true]:bg-accent', activeText: 'data-[active=true]:text-accent-foreground' },
-    { title: 'Clientes', url: '/clients', icon: Users, iconColor: 'text-emerald-500 group-hover:text-emerald-400', activeBg: 'data-[active=true]:bg-accent', activeText: 'data-[active=true]:text-accent-foreground' },
-    { title: 'Assinaturas', url: '/subscriptions', icon: CreditCard, iconColor: 'text-purple-500 group-hover:text-purple-400', activeBg: 'data-[active=true]:bg-accent', activeText: 'data-[active=true]:text-accent-foreground' },
-    { title: 'Despesas', url: '/expenses', icon: Receipt, iconColor: 'text-rose-500 group-hover:text-rose-400', activeBg: 'data-[active=true]:bg-accent', activeText: 'data-[active=true]:text-accent-foreground' },
+    { title: 'Dashboard', url: '/dashboard', icon: DashboardIcon, iconColor: 'text-blue-500 group-hover:text-blue-400', activeBg: 'data-[active=true]:bg-accent', activeText: 'data-[active=true]:text-accent-foreground' },
+    { title: 'Agenda', url: '/agenda', icon: CalendarIcon, iconColor: 'text-indigo-500 group-hover:text-indigo-400', activeBg: 'data-[active=true]:bg-accent', activeText: 'data-[active=true]:text-accent-foreground' },
+    { title: 'Clientes', url: '/clients', icon: PersonIcon, iconColor: 'text-emerald-500 group-hover:text-emerald-400', activeBg: 'data-[active=true]:bg-accent', activeText: 'data-[active=true]:text-accent-foreground' },
+    { title: 'Assinaturas', url: '/subscriptions', icon: CardStackIcon, iconColor: 'text-purple-500 group-hover:text-purple-400', activeBg: 'data-[active=true]:bg-accent', activeText: 'data-[active=true]:text-accent-foreground' },
+    { title: 'Despesas', url: '/expenses', icon: FileTextIcon, iconColor: 'text-rose-500 group-hover:text-rose-400', activeBg: 'data-[active=true]:bg-accent', activeText: 'data-[active=true]:text-accent-foreground' },
   ];
 
   return (
@@ -71,7 +69,7 @@ export function AppSidebar() {
                       className={`sidebar-link group gap-3 px-3 py-2.5 rounded-md text-foreground/70 text-[13px] font-medium transition-all duration-150 ease-out active:scale-[0.97] ${isActive ? `${item.activeBg} ${item.activeText}` : 'hover:bg-accent hover:text-accent-foreground'}`}
                       render={<Link to={item.url} />}
                     >
-                        <item.icon className={`w-[18px] h-[18px] transition-all duration-300 group-hover:scale-110 group-hover:-rotate-3 ${item.iconColor}`} strokeWidth={1.5} />
+                        <item.icon className={`w-[18px] h-[18px] transition-all duration-300 group-hover:scale-110 group-hover:-rotate-3 ${item.iconColor}`} />
                         <span className="truncate">{item.title}</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -85,7 +83,7 @@ export function AppSidebar() {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton onClick={logout} className="text-foreground/70 group gap-3 hover:text-destructive hover:bg-destructive/10 transition-all duration-150 ease-out active:scale-[0.97] py-2.5 px-3 rounded-md text-[13px] font-medium">
-              <LogOut className="w-[18px] h-[18px]" strokeWidth={1.5} />
+              <ExitIcon className="w-[18px] h-[18px] transition-all duration-300 group-hover:scale-110" />
               <span className="group-data-[collapsible=icon]:hidden">Sair</span>
             </SidebarMenuButton>
           </SidebarMenuItem>

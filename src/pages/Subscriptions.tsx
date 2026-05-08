@@ -147,7 +147,7 @@ export default function SubscriptionsPage() {
     const formattedValue = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(sub.monthlyValue);
     const serviceText = sub.service ? ` referente a ${sub.service}` : '';
     
-    const message = `Olá, tudo bem?\n\nPassando para lembrar que o vencimento da sua mensalidade${serviceText} está se aproximando (Dia ${sub.dueDay}).\nValor: ${formattedValue}\n\nPara facilitar, segue a nossa chave PIX:\n*62991803975*\nNubank\n\nQualquer dúvida, estamos à disposição. Tenha um ótimo dia!`;
+    const message = `Olá, tudo bem? 👋\n\nPassando para lembrar que o vencimento da sua mensalidade${serviceText} está se aproximando (Dia ${sub.dueDay}). 🗓️\nValor: ${formattedValue} 💰\n\nPara facilitar, segue a nossa chave PIX: 💳\n*62991803975*\nNubank 🏦\n\nQualquer dúvida, estamos à disposição. Tenha um ótimo dia! 🌟`;
     
     window.open(`https://wa.me/55${cleanPhone}?text=${encodeURIComponent(message)}`, '_blank');
   };

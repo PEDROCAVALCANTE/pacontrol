@@ -119,9 +119,9 @@ export default function ClientsPage() {
     const cleanPhone = client.phone.replace(/\D/g, '');
     const formattedValue = client.value ? new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(client.value) : '';
     const dateText = client.dueDay ? ` (Dia ${client.dueDay})` : '';
-    const valueText = formattedValue ? `\nValor: ${formattedValue}` : '';
+    const valueText = formattedValue ? `\nValor: ${formattedValue} 💰` : '';
     
-    const message = `Olá, tudo bem?\n\nPassando para lembrar que o vencimento da sua mensalidade está se aproximando${dateText}.${valueText}\n\nPara facilitar, segue a nossa chave PIX:\n*62991803975*\nNubank\n\nQualquer dúvida, estamos à disposição. Tenha um ótimo dia!`;
+    const message = `Olá, tudo bem? 👋\n\nPassando para lembrar que o vencimento da sua mensalidade está se aproximando${dateText}. 🗓️${valueText}\n\nPara facilitar, segue a nossa chave PIX: 💳\n*62991803975*\nNubank 🏦\n\nQualquer dúvida, estamos à disposição. Tenha um ótimo dia! 🌟`;
     
     window.open(`https://wa.me/55${cleanPhone}?text=${encodeURIComponent(message)}`, '_blank');
   };

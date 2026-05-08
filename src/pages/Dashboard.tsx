@@ -246,7 +246,7 @@ export default function DashboardPage() {
                       <td className="px-6 py-4 text-center">
                         {shouldMessage && cPhone && (
                           <a 
-                            href={`https://wa.me/55${cPhone}?text=Olá! Vimos que sua mensalidade deste mês (vencimento dia ${sub.dueDay}) está pendente. Para manter o seu acesso, não esqueça de realizar o pagamento.`}
+                            href={`https://wa.me/55${cPhone}?text=Olá! 👋 Vimos que sua mensalidade deste mês (vencimento dia ${sub.dueDay}) está pendente. ⚠️ Para manter o seu acesso, não esqueça de realizar o pagamento. 💳 Qualquer dúvida, só chamar! 🤝`}
                             target="_blank" 
                             rel="noopener noreferrer"
                             className="inline-flex items-center justify-center text-emerald-500 bg-emerald-500/10 hover:bg-emerald-500/20 p-2 rounded-full transition-colors"
