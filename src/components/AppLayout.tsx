@@ -3,6 +3,7 @@ import { AppSidebar } from '@/components/app-sidebar';
 import { SidebarProvider, SidebarTrigger, SidebarInset } from '@/components/ui/sidebar';
 import { Sun, Moon, Sunrise } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { motion } from 'motion/react';
 
 function Greeting() {
   const [greeting, setGreeting] = useState('');
@@ -25,10 +26,15 @@ function Greeting() {
   if (!greeting || !Icon) return null;
 
   return (
-    <div className="flex items-center gap-2 text-foreground/80 font-medium ml-4">
+    <motion.div 
+      initial={{ opacity: 0, x: -10 }} 
+      animate={{ opacity: 1, x: 0 }} 
+      transition={{ delay: 0.2 }}
+      className="flex items-center gap-2 text-foreground/80 font-medium ml-4"
+    >
       <Icon className="w-5 h-5 text-amber-500" />
       <span>{greeting}, Pedro e Angra!</span>
-    </div>
+    </motion.div>
   );
 }
 
@@ -44,7 +50,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <div className="flex-1" />
         </header>
         <main className="flex-1 p-6 sm:p-8 lg:p-10 overflow-x-hidden">
-          {children}
+          <motion.div
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+            className="w-full h-full"
+          >
+            {children}
+          </motion.div>
         </main>
       </SidebarInset>
     </SidebarProvider>

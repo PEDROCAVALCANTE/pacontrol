@@ -229,13 +229,19 @@ export default function DashboardPage() {
                 </tr>
               </thead>
               <tbody>
-                {activeSubs.map(sub => {
+                {activeSubs.map((sub, index) => {
                   const isCurrentMonthPaid = sub.payments?.[currentMonthKey] || sub.paid;
                   const cPhone = getSubClientPhone(sub).replace(/\D/g, '');
                   const shouldMessage = !isCurrentMonthPaid && isTodayAfter10th;
 
                   return (
-                    <tr key={sub.id} className="glass-panel shadow-sm hover:shadow-[0_12px_40px_-8px_rgba(0,0,0,0.5)] hover:-translate-y-[2px] transition-all duration-300 [&>td:first-child]:rounded-l-xl [&>td:last-child]:rounded-r-xl">
+                    <motion.tr 
+                      initial={{ opacity: 0, x: -10 }} 
+                      animate={{ opacity: 1, x: 0 }} 
+                      transition={{ delay: index * 0.05 }}
+                      key={sub.id} 
+                      className="glass-panel shadow-sm hover:shadow-[0_12px_40px_-8px_rgba(0,0,0,0.5)] hover:-translate-y-[2px] transition-all duration-300 [&>td:first-child]:rounded-l-xl [&>td:last-child]:rounded-r-xl"
+                    >
                       <td className="px-6 py-4">
                         <p className="font-medium text-foreground">{getSubClientName(sub)}</p>
                         <p className="text-xs text-muted-foreground mt-0.5">
@@ -276,7 +282,7 @@ export default function DashboardPage() {
                           </td>
                         );
                       })}
-                    </tr>
+                    </motion.tr>
                   )
                 })}
                 {activeSubs.length === 0 && (

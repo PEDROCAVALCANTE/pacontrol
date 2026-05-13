@@ -14,6 +14,7 @@ import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Badge } from '@/components/ui/badge';
+import { motion } from 'motion/react';
 
 export default function ExpensesPage() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
@@ -125,16 +126,20 @@ export default function ExpensesPage() {
       </header>
 
       <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-           <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Despesas Pagas (Total)</CardTitle>
-           </CardHeader>
-           <CardContent>
-              <div className="text-2xl font-bold text-rose-400">
-                {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(currentMonthPaidTotal)}
-              </div>
-           </CardContent>
-        </Card>
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+          <Card>
+             <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium">Despesas Pagas (Total)</CardTitle>
+             </CardHeader>
+             <CardContent>
+                <div className="text-2xl font-bold text-rose-400">
+                  {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(currentMonthPaidTotal)}
+                </div>
+             </CardContent>
+          </Card>
+        </motion.div>
+        
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
         <Card>
            <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium">Despesas Pendentes (Total)</CardTitle>
@@ -145,8 +150,10 @@ export default function ExpensesPage() {
               </div>
            </CardContent>
         </Card>
+        </motion.div>
       </div>
 
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
       <Card>
         <CardHeader>
            <CardTitle>Histórico de Despesas</CardTitle>
@@ -171,8 +178,14 @@ export default function ExpensesPage() {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  expenses.map((expense) => (
-                    <TableRow key={expense.id}>
+                  expenses.map((expense, index) => (
+                    <motion.tr 
+                      key={expense.id}
+                      initial={{ opacity: 0, x: -10 }} 
+                      animate={{ opacity: 1, x: 0 }} 
+                      transition={{ delay: index * 0.05 }}
+                      className="glass-panel hover:shadow-[inset_0_1px_1px_rgba(255,255,255,0.08),0_12px_40px_-8px_rgba(0,0,0,0.5)] hover:-translate-y-[2px] transition-all duration-300 [&>td:first-child]:rounded-l-xl [&>td:last-child]:rounded-r-xl [&>th:first-child]:rounded-l-xl [&>th:last-child]:rounded-r-xl"
+                    >
                       <TableCell className="whitespace-nowrap">{format(new Date(expense.date), 'dd/MM/yyyy')}</TableCell>
                       <TableCell className="font-medium whitespace-nowrap">{expense.description}</TableCell>
                       <TableCell className="whitespace-nowrap">
@@ -198,7 +211,7 @@ export default function ExpensesPage() {
                           <Trash2 className="h-4 w-4 text-muted-foreground hover:text-rose-400" />
                         </Button>
                       </TableCell>
-                    </TableRow>
+                    </motion.tr>
                   ))
                 )}
               </TableBody>
@@ -206,6 +219,7 @@ export default function ExpensesPage() {
           </div>
         </CardContent>
       </Card>
+      </motion.div>
     </div>
   );
 }

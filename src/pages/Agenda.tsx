@@ -11,6 +11,8 @@ import { ptBR } from 'date-fns/locale';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 
+import { motion } from 'motion/react';
+
 export default function AgendaPage() {
   const [loading, setLoading] = useState(true);
   const [clients, setClients] = useState<Client[]>([]);
@@ -183,8 +185,14 @@ export default function AgendaPage() {
             <p className="text-muted-foreground">Nenhuma assinatura ativa para agendamento.</p>
           </div>
         ) : (
-          scheduledItems.map(item => (
-            <div key={item.id} className="flex flex-col sm:flex-row items-center justify-between glass-panel p-5 rounded-2xl transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.3)] group">
+          scheduledItems.map((item, index) => (
+            <motion.div 
+              key={item.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.05 }}
+              className="flex flex-col sm:flex-row items-center justify-between glass-panel p-5 rounded-2xl transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.3)] group"
+            >
                <div className="flex items-center gap-6 w-full sm:w-auto">
                  <div className="flex flex-col items-center justify-center bg-background w-14 h-14 rounded-xl shadow-inner">
                     <span className="text-xs text-muted-foreground font-medium uppercase">Dia</span>
@@ -220,7 +228,7 @@ export default function AgendaPage() {
                    {item.isPaid ? 'Desfazer' : 'Confirmar Pgto'}
                  </Button>
                </div>
-            </div>
+            </motion.div>
           ))
         )}
       </div>
