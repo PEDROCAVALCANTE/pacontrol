@@ -26,6 +26,7 @@ export default function SubscriptionsPage() {
   // Merged form fields
   const [clientName, setClientName] = useState('');
   const [clientPhone, setClientPhone] = useState('');
+  const [responsible, setResponsible] = useState('');
   const [service, setService] = useState('');
   const [monthlyValue, setMonthlyValue] = useState('');
   const [dueDay, setDueDay] = useState('');
@@ -59,6 +60,7 @@ export default function SubscriptionsPage() {
       setEditingSub(sub);
       setClientName(getSubClientName(sub));
       setClientPhone(getSubClientPhone(sub));
+      setResponsible(sub.responsible || '');
       setService(sub.service || '');
       setMonthlyValue(sub.monthlyValue.toString());
       setDueDay(sub.dueDay.toString());
@@ -67,6 +69,7 @@ export default function SubscriptionsPage() {
       setEditingSub(null);
       setClientName('');
       setClientPhone('');
+      setResponsible('');
       setService('');
       setMonthlyValue('');
       setDueDay('');
@@ -91,6 +94,7 @@ export default function SubscriptionsPage() {
     const subData = { 
       clientName, 
       clientPhone, 
+      responsible,
       service,
       monthlyValue: value, 
       dueDay: day, 
@@ -164,22 +168,30 @@ export default function SubscriptionsPage() {
     <div className="space-y-6">
       <header className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-6 sm:mb-8 gap-4">
         <div className="flex flex-col gap-1">
-          <h2 className="text-4xl font-serif text-foreground tracking-tight">Assinaturas</h2>
+          <h2 className="text-4xl font-serif text-foreground tracking-tight">Clientes & Assinaturas</h2>
           <p className="text-sm text-muted-foreground">Controle de clientes e pagamentos recorrentes.</p>
         </div>
         
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger render={<Button className="w-full sm:w-auto shadow-sm tracking-wide" onClick={() => handleOpenDialog()} />}>
-            <Plus className="mr-2 h-4 w-4" /> Nova Assinatura
+          <DialogTrigger asChild>
+            <Button className="w-full sm:w-auto shadow-sm tracking-wide" onClick={() => handleOpenDialog()}>
+              <Plus className="mr-2 h-4 w-4" /> Novo
+            </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>{editingSub ? 'Editar Assinatura' : 'Nova Assinatura'}</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSave} className="space-y-4 pt-4">
-              <div className="space-y-2">
-                <Label htmlFor="clientName">Nome do Cliente</Label>
-                <Input id="clientName" value={clientName} onChange={e => setClientName(e.target.value)} placeholder="Ex: João Silva" required />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="clientName">Nome do Cliente</Label>
+                  <Input id="clientName" value={clientName} onChange={e => setClientName(e.target.value)} placeholder="Ex: João Silva" required />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="responsible">Responsável</Label>
+                  <Input id="responsible" value={responsible} onChange={e => setResponsible(e.target.value)} placeholder="Ex: Maria (Equipe)" />
+                </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -237,6 +249,7 @@ export default function SubscriptionsPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Cliente</TableHead>
+                  <TableHead>Responsável</TableHead>
                   <TableHead>Telefone</TableHead>
                   <TableHead>Serviço/Produto</TableHead>
                   <TableHead>Valor</TableHead>
@@ -276,6 +289,7 @@ export default function SubscriptionsPage() {
                       <TableCell>
                         <p className="font-medium whitespace-nowrap">{getSubClientName(sub)}</p>
                       </TableCell>
+                      <TableCell className="whitespace-nowrap">{sub.responsible || '-'}</TableCell>
                       <TableCell className="whitespace-nowrap">{cPhone || '-'}</TableCell>
                       <TableCell className="whitespace-nowrap">{sub.service || '-'}</TableCell>
                       <TableCell className="whitespace-nowrap">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(sub.monthlyValue)}</TableCell>

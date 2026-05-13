@@ -19,6 +19,7 @@ export type Subscription = {
   // New merged fields
   clientName?: string;
   clientPhone?: string;
+  responsible?: string;
   service?: string;
   
   monthlyValue: number;

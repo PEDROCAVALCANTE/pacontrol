@@ -25,7 +25,13 @@ export default function LoginPage() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4 sm:p-8 relative overflow-hidden font-sans">
-      <div className="atmospheric-bg" />
+      <div 
+        className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: 'url("https://iili.io/BmnrVl2.gif")' }}
+      >
+        <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+      </div>
+
       <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5 }} className="mb-8 flex items-center justify-center z-10 drop-shadow-lg">
         <div className="flex flex-col items-center gap-3">
           <div className="w-16 h-16 rounded-xl flex items-center justify-center overflow-hidden">

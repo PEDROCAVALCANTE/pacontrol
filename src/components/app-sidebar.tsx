@@ -30,8 +30,7 @@ export function AppSidebar() {
   const navItems = [
     { title: 'Dashboard', url: '/dashboard', icon: DashboardIcon, iconColor: 'text-blue-500 group-hover:text-blue-400', activeBg: 'data-[active=true]:bg-accent', activeText: 'data-[active=true]:text-accent-foreground' },
     { title: 'Agenda', url: '/agenda', icon: CalendarIcon, iconColor: 'text-indigo-500 group-hover:text-indigo-400', activeBg: 'data-[active=true]:bg-accent', activeText: 'data-[active=true]:text-accent-foreground' },
-    { title: 'Clientes', url: '/clients', icon: PersonIcon, iconColor: 'text-emerald-500 group-hover:text-emerald-400', activeBg: 'data-[active=true]:bg-accent', activeText: 'data-[active=true]:text-accent-foreground' },
-    { title: 'Assinaturas', url: '/subscriptions', icon: CardStackIcon, iconColor: 'text-purple-500 group-hover:text-purple-400', activeBg: 'data-[active=true]:bg-accent', activeText: 'data-[active=true]:text-accent-foreground' },
+    { title: 'Clientes / Assinaturas', url: '/subscriptions', icon: CardStackIcon, iconColor: 'text-purple-500 group-hover:text-purple-400', activeBg: 'data-[active=true]:bg-accent', activeText: 'data-[active=true]:text-accent-foreground' },
     { title: 'Despesas', url: '/expenses', icon: FileTextIcon, iconColor: 'text-rose-500 group-hover:text-rose-400', activeBg: 'data-[active=true]:bg-accent', activeText: 'data-[active=true]:text-accent-foreground' },
   ];
 

@@ -2,7 +2,6 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import DashboardPage from './pages/Dashboard';
 import AgendaPage from './pages/Agenda';
-import ClientsPage from './pages/Clients';
 import ExpensesPage from './pages/Expenses';
 import SubscriptionsPage from './pages/Subscriptions';
 import LoginPage from './pages/Login';
@@ -23,9 +22,8 @@ export default function App() {
               <Route path="/" element={<AppLayout><DashboardPage /></AppLayout>} />
               <Route path="/dashboard" element={<AppLayout><DashboardPage /></AppLayout>} />
               <Route path="/agenda" element={<AppLayout><AgendaPage /></AppLayout>} />
-              <Route path="/clients" element={<AppLayout><ClientsPage /></AppLayout>} />
-              <Route path="/expenses" element={<AppLayout><ExpensesPage /></AppLayout>} />
               <Route path="/subscriptions" element={<AppLayout><SubscriptionsPage /></AppLayout>} />
+              <Route path="/expenses" element={<AppLayout><ExpensesPage /></AppLayout>} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
             <Toaster position="top-right" expand={true} richColors />
