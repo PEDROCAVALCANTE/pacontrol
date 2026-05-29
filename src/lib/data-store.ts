@@ -14,8 +14,7 @@ function uid(): string {
 export async function getClients(): Promise<Client[]> {
   const path = 'clients';
   try {
-    const q = query(collection(db, path), where('userId', '==', uid()));
-    const snapshot = await getDocs(q);
+    const snapshot = await getDocs(collection(db, path));
     return snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Client));
   } catch (error) {
     handleFirestoreError(error, OperationType.GET, path);
@@ -62,8 +61,7 @@ export async function deleteClient(id: string): Promise<void> {
 export async function getSubscriptions(): Promise<Subscription[]> {
   const path = 'subscriptions';
   try {
-    const q = query(collection(db, path), where('userId', '==', uid()));
-    const snapshot = await getDocs(q);
+    const snapshot = await getDocs(collection(db, path));
     return snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Subscription));
   } catch (error) {
     handleFirestoreError(error, OperationType.GET, path);
@@ -103,8 +101,7 @@ export async function deleteSubscription(id: string): Promise<void> {
 export async function getExpenses(): Promise<Expense[]> {
   const path = 'expenses';
   try {
-    const q = query(collection(db, path), where('userId', '==', uid()));
-    const snapshot = await getDocs(q);
+    const snapshot = await getDocs(collection(db, path));
     return snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Expense));
   } catch (error) {
     handleFirestoreError(error, OperationType.GET, path);

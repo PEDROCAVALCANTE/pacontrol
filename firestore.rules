@@ -7,31 +7,20 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    function isOwner() {
-      return isSignedIn() && resource.data.userId == request.auth.uid;
-    }
-
-    function isOwnerOnCreate() {
-      return isSignedIn() && request.resource.data.userId == request.auth.uid;
-    }
-
     match /users/{userId} {
       allow read, write: if isSignedIn() && request.auth.uid == userId;
     }
 
     match /clients/{clientId} {
-      allow read, update, delete: if isOwner();
-      allow create: if isOwnerOnCreate();
+      allow read, write: if isSignedIn();
     }
 
     match /subscriptions/{subscriptionId} {
-      allow read, update, delete: if isOwner();
-      allow create: if isOwnerOnCreate();
+      allow read, write: if isSignedIn();
     }
 
     match /expenses/{expenseId} {
-      allow read, update, delete: if isOwner();
-      allow create: if isOwnerOnCreate();
+      allow read, write: if isSignedIn();
     }
 
     match /{document=**} {
