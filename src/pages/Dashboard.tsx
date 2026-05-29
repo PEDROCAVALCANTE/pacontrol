@@ -4,12 +4,13 @@ import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { getClients, getSubscriptions, getExpenses, updateSubscription } from '@/lib/data-store';
 import { Client, Expense, Subscription } from '@/lib/types';
-import { DollarSign, AlertCircle, TrendingUp, CreditCard, Activity, Check, X, MessageCircle, Info } from 'lucide-react';
+import { DollarSign, AlertCircle, TrendingUp, CreditCard, Activity, Check, X, Info } from 'lucide-react';
 import { format, startOfDay, subMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { toast } from 'sonner';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { motion } from 'motion/react';
+import { WhatsAppButton } from '@/components/WhatsAppButton';
 
 export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
@@ -251,15 +252,11 @@ export default function DashboardPage() {
                       </td>
                       <td className="px-6 py-4 text-center">
                         {shouldMessage && cPhone && (
-                          <a 
-                            href={`https://wa.me/55${cPhone}?text=Olá! 👋 Vimos que sua mensalidade deste mês (vencimento dia ${sub.dueDay}) está pendente. ⚠️ Para manter o seu acesso, não esqueça de realizar o pagamento. 💳 Qualquer dúvida, só chamar! 🤝`}
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center justify-center text-emerald-500 bg-emerald-500/10 hover:bg-emerald-500/20 p-2 rounded-full transition-colors"
-                            title="Cobrar via WhatsApp"
-                          >
-                            <MessageCircle className="w-4 h-4" />
-                          </a>
+                          <WhatsAppButton
+                            phone={cPhone}
+                            clientName={getSubClientName(sub)}
+                            dueDay={sub.dueDay}
+                          />
                         )}
                       </td>
                       {monthList.map(m => {
