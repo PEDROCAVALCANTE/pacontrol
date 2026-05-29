@@ -1,60 +1,40 @@
 'use client';
 import { AppSidebar } from '@/components/app-sidebar';
 import { SidebarProvider, SidebarTrigger, SidebarInset } from '@/components/ui/sidebar';
-import { Sun, Moon, Sunrise } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { motion } from 'motion/react';
 
-function Greeting() {
-  const [greeting, setGreeting] = useState('');
-  const [Icon, setIcon] = useState<any>(null);
-
-  useEffect(() => {
-    const hour = new Date().getHours();
-    if (hour >= 5 && hour < 12) {
-      setGreeting('Bom dia');
-      setIcon(() => Sunrise);
-    } else if (hour >= 12 && hour < 18) {
-      setGreeting('Boa tarde');
-      setIcon(() => Sun);
-    } else {
-      setGreeting('Boa noite');
-      setIcon(() => Moon);
-    }
-  }, []);
-
-  if (!greeting || !Icon) return null;
-
-  return (
-    <motion.div 
-      initial={{ opacity: 0, x: -10 }} 
-      animate={{ opacity: 1, x: 0 }} 
-      transition={{ delay: 0.2 }}
-      className="flex items-center gap-2 text-foreground/80 font-medium ml-4"
-    >
-      <Icon className="w-5 h-5 text-amber-500" />
-      <span>{greeting}, Pedro e Angra!</span>
-    </motion.div>
-  );
-}
+const PAGE_TITLES: Record<string, string> = {
+  '/dashboard':     'Dashboard',
+  '/agenda':        'Agenda',
+  '/subscriptions': 'Clientes & Assinaturas',
+  '/expenses':      'Despesas',
+};
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
+  const { pathname } = useLocation();
+  const title = PAGE_TITLES[pathname] ?? 'PA Control';
+
   return (
     <SidebarProvider>
       <div className="atmospheric-bg" />
       <AppSidebar />
-      <SidebarInset className="bg-transparent peer-data-[variant=inset]:min-h-svh flex w-full flex-col backdrop-blur-[2px]">
-        <header className="sticky top-0 z-10 flex h-16 items-center gap-4 glass-panel px-4 lg:px-6 shadow-sm rounded-none">
-          <SidebarTrigger className="text-foreground/70 hover:text-foreground transition-opacity" />
-          <Greeting />
-          <div className="flex-1" />
+      <SidebarInset className="bg-transparent flex w-full flex-col min-h-svh">
+        {/* Topbar */}
+        <header className="sticky top-0 z-20 flex h-14 items-center gap-3 px-5 border-b border-border/60 bg-background/70 backdrop-blur-md">
+          <SidebarTrigger className="text-muted-foreground hover:text-foreground transition-colors" />
+          <div className="w-px h-4 bg-border" />
+          <span className="text-sm font-medium text-foreground">{title}</span>
         </header>
-        <main className="flex-1 p-6 sm:p-8 lg:p-10 overflow-x-hidden">
+
+        {/* Content */}
+        <main className="flex-1 p-6 md:p-8 overflow-x-hidden">
           <motion.div
-            initial={{ opacity: 0, y: 15 }}
+            key={pathname}
+            initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
-            className="w-full h-full"
+            transition={{ duration: 0.25, ease: 'easeOut' }}
+            className="w-full h-full max-w-screen-xl mx-auto"
           >
             {children}
           </motion.div>

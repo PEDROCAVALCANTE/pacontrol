@@ -15,6 +15,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Badge } from '@/components/ui/badge';
 import { motion } from 'motion/react';
+import { PageHeader } from '@/components/PageHeader';
 
 export default function ExpensesPage() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
@@ -88,15 +89,13 @@ export default function ExpensesPage() {
 
   return (
     <div className="space-y-6">
-      <header className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-6 sm:mb-8 gap-4">
-        <div className="flex flex-col gap-1">
-          <h2 className="text-4xl font-serif text-foreground tracking-tight">Despesas</h2>
-          <p className="text-sm text-muted-foreground">Registre custos operacionais do seu negócio.</p>
-        </div>
-        
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger render={<Button className="w-full sm:w-auto shadow-sm tracking-wide" onClick={handleOpenDialog} />}>
-            <Plus className="mr-2 h-4 w-4" /> Nova Despesa
+      <PageHeader
+        title="Despesas"
+        subtitle="Registre custos operacionais do seu negócio."
+        action={
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger render={<Button size="sm" onClick={handleOpenDialog} />}>
+            <Plus className="mr-1.5 h-4 w-4" /> Nova Despesa
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
@@ -123,51 +122,41 @@ export default function ExpensesPage() {
             </form>
           </DialogContent>
         </Dialog>
-      </header>
+        }
+      />
 
-      <div className="grid gap-4 md:grid-cols-3">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-          <Card>
-             <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Despesas Pagas (Total)</CardTitle>
-             </CardHeader>
-             <CardContent>
-                <div className="text-2xl font-bold text-rose-400">
-                  {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(currentMonthPaidTotal)}
-                </div>
-             </CardContent>
-          </Card>
-        </motion.div>
-        
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-        <Card>
-           <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Despesas Pendentes (Total)</CardTitle>
-           </CardHeader>
-           <CardContent>
-              <div className="text-2xl font-bold text-amber-500">
-                {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(currentMonthPendingTotal)}
-              </div>
-           </CardContent>
-        </Card>
-        </motion.div>
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {[
+          { label: 'Total Pago',     value: currentMonthPaidTotal,    color: '#EF4444' },
+          { label: 'Total Pendente', value: currentMonthPendingTotal, color: '#F59E0B' },
+        ].map((item, i) => (
+          <motion.div key={item.label} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.07 }}>
+            <div className="rounded-xl p-5 card-interactive" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
+              <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider mb-3">{item.label}</p>
+              <p className="tabular text-xl font-semibold" style={{ color: item.color }}>
+                {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.value)}
+              </p>
+            </div>
+          </motion.div>
+        ))}
       </div>
 
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
-      <Card>
-        <CardHeader>
-           <CardTitle>Histórico de Despesas</CardTitle>
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
+      <div className="rounded-xl overflow-hidden" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
+      <Card className="border-0 shadow-none bg-transparent">
+        <CardHeader className="pb-0">
+           <CardTitle className="text-sm font-semibold text-foreground">Histórico</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="whitespace-nowrap">Data</TableHead>
-                  <TableHead className="whitespace-nowrap">Descrição</TableHead>
-                  <TableHead className="whitespace-nowrap">Status</TableHead>
-                  <TableHead className="text-right whitespace-nowrap">Valor</TableHead>
-                  <TableHead className="text-right whitespace-nowrap">Ações</TableHead>
+                  <TableHead className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Data</TableHead>
+                  <TableHead className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Descrição</TableHead>
+                  <TableHead className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Status</TableHead>
+                  <TableHead className="text-right text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Valor</TableHead>
+                  <TableHead className="text-right text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -219,6 +208,7 @@ export default function ExpensesPage() {
           </div>
         </CardContent>
       </Card>
+      </div>
       </motion.div>
     </div>
   );

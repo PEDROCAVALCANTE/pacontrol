@@ -10,8 +10,9 @@ import { format, addMonths, subMonths, startOfMonth, setDate, isBefore, isToday,
 import { ptBR } from 'date-fns/locale';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-
 import { motion } from 'motion/react';
+import { PageHeader } from '@/components/PageHeader';
+import { TableSkeleton } from '@/components/Skeleton';
 
 export default function AgendaPage() {
   const [loading, setLoading] = useState(true);
@@ -83,7 +84,7 @@ export default function AgendaPage() {
     loadData();
   };
 
-  if (loading) return <div className="text-muted-foreground">Carregando agenda...</div>;
+  if (loading) return <TableSkeleton rows={5} />;
 
   const activeSubs = subs.filter(s => s.status === 'active');
   const expectedTotal = activeSubs.reduce((acc, sub) => acc + Number(sub.monthlyValue), 0);
@@ -132,12 +133,10 @@ export default function AgendaPage() {
 
   return (
     <div className="space-y-6">
-      <header className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-6 sm:mb-8">
-        <div className="flex flex-col gap-1">
-          <h2 className="text-4xl font-serif text-foreground tracking-tight">Agenda</h2>
-          <p className="text-sm text-muted-foreground">Gerencie todos os pagamentos recorrentes das suas assinaturas.</p>
-        </div>
-      </header>
+      <PageHeader
+        title="Agenda"
+        subtitle="Gerencie todos os pagamentos recorrentes por mês."
+      />
 
       {/* Month Navigation & Summary */}
       <div className="flex flex-col md:flex-row gap-6 items-center justify-between glass-panel p-4 sm:p-6 rounded-[1.5rem] shadow-lg">

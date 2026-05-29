@@ -15,6 +15,7 @@ import { Search, Plus, Edit2, CheckCircle2, MessageCircle, Trash2 } from 'lucide
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'motion/react';
 import { setDate, isBefore, startOfDay, format } from 'date-fns';
+import { PageHeader } from '@/components/PageHeader';
 
 export default function SubscriptionsPage() {
   const [clients, setClients] = useState<Client[]>([]);
@@ -166,16 +167,14 @@ export default function SubscriptionsPage() {
 
   return (
     <div className="space-y-6">
-      <header className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-6 sm:mb-8 gap-4">
-        <div className="flex flex-col gap-1">
-          <h2 className="text-4xl font-serif text-foreground tracking-tight">Clientes & Assinaturas</h2>
-          <p className="text-sm text-muted-foreground">Controle de clientes e pagamentos recorrentes.</p>
-        </div>
-        
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+      <PageHeader
+        title="Clientes & Assinaturas"
+        subtitle="Controle de clientes e pagamentos recorrentes."
+        action={
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="w-full sm:w-auto shadow-sm tracking-wide" onClick={() => handleOpenDialog()}>
-              <Plus className="mr-2 h-4 w-4" /> Novo
+            <Button size="sm" onClick={() => handleOpenDialog()}>
+              <Plus className="mr-1.5 h-4 w-4" /> Nova Assinatura
             </Button>
           </DialogTrigger>
           <DialogContent>
@@ -229,9 +228,11 @@ export default function SubscriptionsPage() {
             </form>
           </DialogContent>
         </Dialog>
-      </header>
+        }
+      />
 
-      <Card>
+      <div className="rounded-xl overflow-hidden" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
+      <Card className="border-0 shadow-none bg-transparent">
         <CardHeader>
           <div className="relative">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -248,14 +249,14 @@ export default function SubscriptionsPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Cliente</TableHead>
-                  <TableHead>Responsável</TableHead>
-                  <TableHead>Telefone</TableHead>
-                  <TableHead>Serviço/Produto</TableHead>
-                  <TableHead>Valor</TableHead>
-                  <TableHead>Vencimento</TableHead>
-                  <TableHead>Situação (Mês Atual)</TableHead>
-                  <TableHead className="text-right">Ações</TableHead>
+                  <TableHead className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Cliente</TableHead>
+                  <TableHead className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Responsável</TableHead>
+                  <TableHead className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Telefone</TableHead>
+                  <TableHead className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Serviço</TableHead>
+                  <TableHead className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Valor</TableHead>
+                  <TableHead className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Vencimento</TableHead>
+                  <TableHead className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Status</TableHead>
+                  <TableHead className="text-right text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -292,17 +293,17 @@ export default function SubscriptionsPage() {
                       <TableCell className="whitespace-nowrap">{sub.responsible || '-'}</TableCell>
                       <TableCell className="whitespace-nowrap">{cPhone || '-'}</TableCell>
                       <TableCell className="whitespace-nowrap">{sub.service || '-'}</TableCell>
-                      <TableCell className="whitespace-nowrap">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(sub.monthlyValue)}</TableCell>
+                      <TableCell className="whitespace-nowrap tabular font-medium">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(sub.monthlyValue)}</TableCell>
                       <TableCell className="whitespace-nowrap">Dia {sub.dueDay}</TableCell>
                       <TableCell className="whitespace-nowrap">
                         {sub.status === 'inactive' ? (
-                          <Badge variant="outline">Inativa</Badge>
+                          <span className="pill-muted">Inativa</span>
                         ) : isPaid ? (
-                          <Badge className="bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border-none">Pago</Badge>
+                          <span className="pill-success">● Pago</span>
                         ) : isLate ? (
-                          <Badge className="bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 border-none">Atrasado</Badge>
+                          <span className="pill-danger">● Atrasado</span>
                         ) : (
-                          <Badge className="bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 border-none">Aberto</Badge>
+                          <span className="pill-warning">● Aberto</span>
                         )}
                       </TableCell>
                       <TableCell className="text-right flex items-center justify-end gap-2 whitespace-nowrap">
@@ -337,6 +338,7 @@ export default function SubscriptionsPage() {
           </div>
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 }
