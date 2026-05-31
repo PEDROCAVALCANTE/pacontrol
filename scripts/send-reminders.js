@@ -33,6 +33,8 @@ function reminderMessage(name, dueDay, value) {
     `Olá, ${name}! 👋\n\n` +
     `Passando para lembrar que sua mensalidade vence *amanhã (dia ${dueDay})*. 📅\n\n` +
     `Valor: *${formatCurrency(value)}* 💰\n\n` +
+    `Para facilitar, segue nossa chave PIX:\n` +
+    `🔑 *62991803975* (Nubank)\n\n` +
     `Não esqueça de realizar o pagamento para manter seu acesso ativo! 🙏\n\n` +
     `Qualquer dúvida, só chamar! 😊`
   );
@@ -83,10 +85,12 @@ async function main() {
     const sub  = { id: doc.id, ...doc.data() };
     const name = sub.clientName || 'Cliente';
 
-    // ── Não envia se já pagou este mês ──────────────────────────────────────
-    const isPaid = sub.payments?.[currentMonthKey] || sub.paid;
+    // ── Não envia se já pagou este mês (verifica payments e flag legada) ───
+    const paidThisMonth = sub.payments?.[currentMonthKey] === true;
+    const paidLegacy    = sub.paid === true;
+    const isPaid        = paidThisMonth || paidLegacy;
     if (isPaid) {
-      console.log(`⏭️  ${name} — já pagou este mês.`);
+      console.log(`⏭️  ${name} — já pagou este mês, pulando.`);
       skipped++;
       continue;
     }
