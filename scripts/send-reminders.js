@@ -1,5 +1,5 @@
 const { initializeApp, cert } = require('firebase-admin/app');
-const { getFirestore } = require('firebase-admin/firestore');
+const { getFirestore, FieldValue } = require('firebase-admin/firestore');
 
 // ── Init Firebase Admin ───────────────────────────────────────────────────────
 const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
@@ -19,6 +19,13 @@ function formatPhone(phone) {
 
 function formatCurrency(value) {
   return Number(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}
+
+function todayBRT() {
+  // Retorna a data de hoje no fuso de Brasília (UTC-3) no formato yyyy-MM-dd
+  const now = new Date();
+  const brt = new Date(now.getTime() - 3 * 60 * 60 * 1000);
+  return brt.toISOString().slice(0, 10);
 }
 
 function reminderMessage(name, dueDay, value) {
@@ -51,12 +58,13 @@ async function sendWhatsApp(phone, message) {
 
 // ── Main ──────────────────────────────────────────────────────────────────────
 async function main() {
-  const tomorrow = new Date();
+  const today    = todayBRT();
+  const tomorrow = new Date(today + 'T12:00:00Z');
   tomorrow.setDate(tomorrow.getDate() + 1);
-  const tomorrowDay    = tomorrow.getDate();
+  const tomorrowDay     = tomorrow.getDate();
   const currentMonthKey = `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, '0')}`;
 
-  console.log(`\n📅 Verificando vencimentos para o dia ${tomorrowDay} (${currentMonthKey})...\n`);
+  console.log(`\n📅 [${today}] Verificando vencimentos para o dia ${tomorrowDay}...\n`);
 
   const snapshot = await db.collection('subscriptions')
     .where('status', '==', 'active')
@@ -75,17 +83,25 @@ async function main() {
     const sub  = { id: doc.id, ...doc.data() };
     const name = sub.clientName || 'Cliente';
 
-    // Skip if already paid this month
+    // ── Não envia se já pagou este mês ──────────────────────────────────────
     const isPaid = sub.payments?.[currentMonthKey] || sub.paid;
     if (isPaid) {
-      console.log(`⏭️  ${name} — já pagou este mês, pulando.`);
+      console.log(`⏭️  ${name} — já pagou este mês.`);
       skipped++;
       continue;
     }
 
+    // ── Não envia se já mandou lembrete hoje ────────────────────────────────
+    if (sub.lastReminderDate === today) {
+      console.log(`⏭️  ${name} — lembrete já enviado hoje (${today}).`);
+      skipped++;
+      continue;
+    }
+
+    // ── Sem telefone ────────────────────────────────────────────────────────
     const phone = sub.clientPhone;
     if (!phone) {
-      console.log(`⚠️  ${name} — sem telefone cadastrado, pulando.`);
+      console.log(`⚠️  ${name} — sem telefone cadastrado.`);
       skipped++;
       continue;
     }
@@ -93,14 +109,21 @@ async function main() {
     try {
       const msg = reminderMessage(name, sub.dueDay, sub.monthlyValue);
       await sendWhatsApp(phone, msg);
+
+      // Marca que lembrete foi enviado hoje
+      await db.collection('subscriptions').doc(doc.id).update({
+        lastReminderDate: today,
+        lastReminderAt: FieldValue.serverTimestamp(),
+      });
+
       console.log(`✅ Lembrete enviado para ${name} (${phone})`);
       sent++;
     } catch (err) {
       console.error(`❌ Erro ao enviar para ${name}:`, err.message);
     }
 
-    // Delay entre mensagens para não ser bloqueado
-    await new Promise(r => setTimeout(r, 2000));
+    // Delay entre mensagens para não ser bloqueado pelo WhatsApp
+    await new Promise(r => setTimeout(r, 2500));
   }
 
   console.log(`\n📊 Resultado: ${sent} enviados, ${skipped} pulados.\n`);

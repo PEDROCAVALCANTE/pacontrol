@@ -2,9 +2,9 @@ name: 📲 Lembretes WhatsApp Automáticos
 
 on:
   schedule:
-    # Todo dia às 9h horário de Brasília (12h UTC)
-    - cron: '0 12 * * *'
-  workflow_dispatch:  # Permite rodar manualmente pelo GitHub
+    - cron: '0 12 * * *'   # 9h BRT (12h UTC)
+    - cron: '0 23 * * *'   # 20h BRT (23h UTC)
+  workflow_dispatch:
 
 jobs:
   send-reminders:
