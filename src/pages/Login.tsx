@@ -3,14 +3,15 @@ import { useAuth } from '@/components/auth-provider';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Lock, Mail } from 'lucide-react';
 import { motion } from 'motion/react';
 
+const LOGO = 'https://iili.io/Bs2OL4s.png';
+
 export default function LoginPage() {
-  const [email, setEmail] = useState('');
+  const [email, setEmail]       = useState('');
   const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading]   = useState(false);
   const { login } = useAuth();
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -18,90 +19,130 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await login(email, password);
-    } catch (error) {
+    } catch {
       setLoading(false);
     }
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-4 sm:p-8 relative overflow-hidden font-sans">
-      <div 
-        className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: 'url("https://iili.io/BmnrVl2.gif")' }}
-      >
-        <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+    <div className="min-h-screen flex bg-[#060A0F]">
+
+      {/* ── Left panel — branding ─────────────────────────────── */}
+      <div className="hidden lg:flex w-[42%] flex-col items-center justify-center relative overflow-hidden px-12"
+           style={{ borderRight: '1px solid rgba(255,255,255,0.05)' }}>
+        {/* Ambient glow */}
+        <div className="absolute inset-0 pointer-events-none"
+             style={{ background: 'radial-gradient(ellipse 80% 60% at 50% 40%, rgba(255,106,0,0.07) 0%, transparent 70%)' }} />
+
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="flex flex-col items-center gap-6 relative z-10"
+        >
+          <img src={LOGO} alt="PA Control" className="w-24 h-24 rounded-2xl object-cover shadow-2xl" />
+          <div className="text-center">
+            <h1 className="text-3xl font-semibold text-white tracking-tight">PA Control</h1>
+            <p className="text-sm text-white/40 mt-2 tracking-wide">Gestão financeira simplificada</p>
+          </div>
+
+          {/* Decorative dots */}
+          <div className="flex gap-2 mt-4">
+            {[0,1,2].map(i => (
+              <div key={i} className="w-1.5 h-1.5 rounded-full"
+                   style={{ background: i === 1 ? '#FF6A00' : 'rgba(255,255,255,0.15)' }} />
+            ))}
+          </div>
+        </motion.div>
+
+        <p className="absolute bottom-8 text-[11px] text-white/20 tracking-widest uppercase">
+          © 2026 PA Control
+        </p>
       </div>
 
-      <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5 }} className="mb-8 flex items-center justify-center z-10 drop-shadow-lg">
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-16 h-16 rounded-xl flex items-center justify-center overflow-hidden">
-            <img src="https://iili.io/Bs2OL4s.png" alt="PA Control Logo" className="w-full h-full object-cover" />
-          </div>
-        </div>
-      </motion.div>
+      {/* ── Right panel — form ────────────────────────────────── */}
+      <div className="flex-1 flex flex-col items-center justify-center px-6 sm:px-12">
 
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 }} className="w-full max-w-sm relative z-10">
-        <Card className="w-full shadow-xl glass-panel p-6 sm:p-8 rounded-xl">
-          <form onSubmit={handleLogin}>
-          <CardHeader className="p-0 pb-8 text-center space-y-2">
-            <CardTitle className="text-2xl font-bold tracking-tight text-foreground">
-              Bem-vindo
-            </CardTitle>
-            <CardDescription className="text-muted-foreground text-sm">
-              Faça login na sua conta para continuar
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-5 p-0">
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-sm font-medium text-foreground">Endereço de E-mail</Label>
-              <Input 
-                id="email" 
-                type="email" 
-                placeholder="nome@empresa.com" 
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="h-11 px-4"
-                required 
-              />
-            </div>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="password" className="text-sm font-medium text-foreground">Senha</Label>
+        {/* Mobile logo */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.4 }}
+          className="lg:hidden mb-10 flex flex-col items-center gap-3"
+        >
+          <img src={LOGO} alt="PA Control" className="w-16 h-16 rounded-xl object-cover shadow-xl" />
+          <p className="text-sm font-medium text-white/50">PA Control</p>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.1 }}
+          className="w-full max-w-sm"
+        >
+          <div className="mb-8">
+            <h2 className="text-2xl font-semibold text-white tracking-tight">Bem-vindo de volta</h2>
+            <p className="text-sm text-white/40 mt-1">Entre com suas credenciais para continuar</p>
+          </div>
+
+          <form onSubmit={handleLogin} className="space-y-5">
+            {/* Email */}
+            <div className="space-y-1.5">
+              <Label htmlFor="email" className="text-xs font-medium text-white/50 uppercase tracking-wider">
+                E-mail
+              </Label>
+              <div className="relative">
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="nome@empresa.com"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  className="login-input pl-10"
+                  required
+                />
               </div>
-              <Input 
-                id="password" 
-                type="password" 
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="h-11 px-4"
-                required 
-              />
             </div>
-          </CardContent>
-          <CardFooter className="p-0 pt-8">
-            <Button 
-              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-11 text-sm font-medium tracking-wide shadow-sm transition-all rounded-lg" 
-              type="submit" 
+
+            {/* Password */}
+            <div className="space-y-1.5">
+              <Label htmlFor="password" className="text-xs font-medium text-white/50 uppercase tracking-wider">
+                Senha
+              </Label>
+              <div className="relative">
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  className="login-input pl-10"
+                  required
+                />
+              </div>
+            </div>
+
+            <Button
+              type="submit"
               disabled={loading}
+              className="w-full h-11 mt-2 font-medium tracking-wide rounded-xl text-sm"
+              style={{ background: '#FF6A00', color: '#fff' }}
             >
               {loading ? (
                 <span className="flex items-center gap-2">
                   <Loader2 className="h-4 w-4 animate-spin" />
                   Autenticando...
                 </span>
-              ) : (
-                'Entrar'
-              )}
+              ) : 'Entrar'}
             </Button>
-          </CardFooter>
-        </form>
-        </Card>
-      </motion.div>
-      
-      {/* Decorative tiny text at bottom */}
-      <div className="absolute bottom-6 text-muted-foreground text-xs font-medium tracking-wider z-10 flex gap-4">
-        <span>© 2026 PA Control</span>
+          </form>
+
+          <p className="text-center text-[11px] text-white/20 mt-10 tracking-wider uppercase lg:hidden">
+            © 2026 PA Control
+          </p>
+        </motion.div>
       </div>
     </div>
   );

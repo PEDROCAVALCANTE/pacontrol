@@ -255,4 +255,22 @@
   .overdue-highlight {
     background: linear-gradient(90deg, rgba(239,68,68,0.08) 0%, transparent 100%);
   }
+
+  /* ── Login input ─────────────────────────────────────────── */
+  .login-input {
+    height: 44px;
+    background: rgba(255,255,255,0.04) !important;
+    border: 1px solid rgba(255,255,255,0.08) !important;
+    border-radius: 10px !important;
+    color: #fff !important;
+    font-size: 14px;
+    transition: border-color 0.15s ease, background 0.15s ease;
+  }
+  .login-input::placeholder { color: rgba(255,255,255,0.2) !important; }
+  .login-input:focus {
+    border-color: rgba(255,106,0,0.5) !important;
+    background: rgba(255,255,255,0.06) !important;
+    outline: none !important;
+    box-shadow: 0 0 0 3px rgba(255,106,0,0.1) !important;
+  }
 }
