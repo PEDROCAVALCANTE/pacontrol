@@ -117,7 +117,7 @@ export default function SubscriptionsPage() {
   const currentMonthKey = format(today, 'yyyy-MM');
 
   const markAsPaid = async (sub: Subscription) => {
-    const isPaid = sub.payments?.[currentMonthKey] || sub.paid;
+    const isPaid = sub.payments ? sub.payments[currentMonthKey] === true : sub.paid === true;
     const newPayments = { ...(sub.payments || {}) };
     
     if (isPaid) {
@@ -274,7 +274,7 @@ export default function SubscriptionsPage() {
                 ) : (
                   filteredSubs.map((sub) => {
                     const dueDate = setDate(today, sub.dueDay);
-                    const isPaid = sub.payments?.[currentMonthKey] || sub.paid;
+                    const isPaid = sub.payments ? sub.payments[currentMonthKey] === true : sub.paid === true;
                     const isLate = sub.status === 'active' && !isPaid && isBefore(dueDate, today);
                     const cPhone = getSubClientPhone(sub);
                     

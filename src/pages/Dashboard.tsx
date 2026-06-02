@@ -256,8 +256,14 @@ export default function DashboardPage() {
   // ── Current month calculations ───────────────────────────
   const activeSubs      = subs.filter(s => s.status === 'active');
   const expectedRevenue = activeSubs.reduce((a, s) => a + Number(s.monthlyValue), 0);
+  // Só usa s.paid se não houver objeto payments (dados muito antigos)
+  const isPaidCurrentMonth = (s: Subscription) =>
+    s.payments
+      ? s.payments[currentMonthKey] === true
+      : s.paid === true;
+
   const receivedRevenue = activeSubs
-    .filter(s => s.payments?.[currentMonthKey] || s.paid)
+    .filter(isPaidCurrentMonth)
     .reduce((a, s) => a + Number(s.monthlyValue), 0);
   const openRevenue     = expectedRevenue - receivedRevenue;
   const totalExpenses   = expenses.filter(e => e.paid).reduce((a, e) => a + Number(e.amount), 0);
@@ -278,7 +284,9 @@ export default function DashboardPage() {
   // ── Toggle payment ────────────────────────────────────────
   const togglePayment = async (sub: Subscription, monthDate: Date) => {
     const mKey   = format(monthDate, 'yyyy-MM');
-    const isPaid = sub.payments?.[mKey] || (mKey === currentMonthKey ? sub.paid : false);
+    const isPaid = sub.payments
+      ? sub.payments[mKey] === true
+      : (mKey === currentMonthKey ? sub.paid === true : false);
     const newPay = { ...(sub.payments ?? {}), [mKey]: !isPaid };
     const legacy = mKey === currentMonthKey ? { paid: !isPaid } : {};
     await updateSubscription(sub.id, { payments: newPay, ...legacy });
@@ -400,7 +408,7 @@ export default function DashboardPage() {
                     </tr>
                   )}
                   {activeSubs.map((sub, i) => {
-                    const isPaidCurrent = !!(sub.payments?.[currentMonthKey] || sub.paid);
+                    const isPaidCurrent = isPaidCurrentMonth(sub);
                     const isPaidPrev    = !!(sub.payments?.[prevMonthKey]);
                     const cPhone        = getSubClientPhone(sub).replace(/\D/g, '');
                     const canSend       = !isPaidCurrent && isTodayAfter10 && !!cPhone;

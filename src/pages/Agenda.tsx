@@ -72,7 +72,7 @@ export default function AgendaPage() {
   const today = new Date();
 
   const togglePayment = async (sub: Subscription) => {
-    const isPaid = sub.payments?.[monthKey] || (monthKey === format(today, 'yyyy-MM') ? sub.paid : false);
+    const isPaid = sub.payments ? sub.payments[monthKey] === true : (monthKey === format(today, 'yyyy-MM') ? sub.paid === true : false);
     const newPayments = { ...(sub.payments || {}) };
     newPayments[monthKey] = !isPaid;
 
@@ -92,7 +92,7 @@ export default function AgendaPage() {
   // Create an array of active subscriptions mapped to their payment state for the view month
   const scheduledItems = activeSubs.map(sub => {
     const dueDate = setDate(currentViewMonth, sub.dueDay);
-    const isPaid = sub.payments?.[monthKey] || (monthKey === format(today, 'yyyy-MM') ? sub.paid : false);
+    const isPaid = sub.payments ? sub.payments[monthKey] === true : (monthKey === format(today, 'yyyy-MM') ? sub.paid === true : false);
     
     // Determine status
     let statusText = 'Pendente';
