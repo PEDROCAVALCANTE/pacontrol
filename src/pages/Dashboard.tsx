@@ -253,33 +253,40 @@ export default function DashboardPage() {
   const getSubClientPhone = (sub: Subscription) =>
     sub.clientPhone ?? clients.find(c => c.id === sub.clientId)?.phone ?? '';
 
+  // ── Helpers ───────────────────────────────────────────────
+  const expensesByMonth = (month: Date) => {
+    const m = month.getMonth(), y = month.getFullYear();
+    return expenses.filter(e => { const d = new Date(e.date); return d.getMonth() === m && d.getFullYear() === y; });
+  };
+
   // ── Current month calculations ───────────────────────────
   const activeSubs      = subs.filter(s => s.status === 'active');
   const expectedRevenue = activeSubs.reduce((a, s) => a + Number(s.monthlyValue), 0);
-  // Só usa s.paid se não houver objeto payments (dados muito antigos)
   const isPaidCurrentMonth = (s: Subscription) =>
-    s.payments
-      ? s.payments[currentMonthKey] === true
-      : s.paid === true;
+    s.payments ? s.payments[currentMonthKey] === true : s.paid === true;
 
-  const receivedRevenue = activeSubs
-    .filter(isPaidCurrentMonth)
-    .reduce((a, s) => a + Number(s.monthlyValue), 0);
-  const openRevenue     = expectedRevenue - receivedRevenue;
-  const totalExpenses   = expenses.filter(e => e.paid).reduce((a, e) => a + Number(e.amount), 0);
-  const realIncome      = receivedRevenue - totalExpenses;
+  const receivedRevenue   = activeSubs.filter(isPaidCurrentMonth).reduce((a, s) => a + Number(s.monthlyValue), 0);
+  const openRevenue       = expectedRevenue - receivedRevenue;
+
+  const currMonthExp      = expensesByMonth(today);
+  const totalExpenses     = currMonthExp.reduce((a, e) => a + Number(e.amount), 0);
+  const totalExpensesPaid = currMonthExp.filter(e => e.paid).reduce((a, e) => a + Number(e.amount), 0);
+  const totalExpensesPend = currMonthExp.filter(e => !e.paid).reduce((a, e) => a + Number(e.amount), 0);
+  const realIncome        = receivedRevenue - totalExpensesPaid;
 
   // ── Previous month calculations ───────────────────────────
-  const prevReceived    = activeSubs
-    .filter(s => s.payments?.[prevMonthKey])
-    .reduce((a, s) => a + Number(s.monthlyValue), 0);
-  const prevExpenses    = expenses.filter(e => e.paid).reduce((a, e) => a + Number(e.amount), 0);
-  const prevIncome      = prevReceived - prevExpenses;
+  const prevReceived      = activeSubs.filter(s => s.payments?.[prevMonthKey]).reduce((a, s) => a + Number(s.monthlyValue), 0);
+  const prevMonthExp      = expensesByMonth(prevMonth);
+  const prevTotalExp      = prevMonthExp.reduce((a, e) => a + Number(e.amount), 0);
+  const prevTotalExpPaid  = prevMonthExp.filter(e => e.paid).reduce((a, e) => a + Number(e.amount), 0);
+  const prevIncome        = prevReceived - prevTotalExpPaid;
 
   // ── Trends ────────────────────────────────────────────────
   const trendReceived   = trendPct(receivedRevenue, prevReceived);
   const trendIncome     = trendPct(realIncome, prevIncome);
   const trendOpen       = trendPct(openRevenue, expectedRevenue - prevReceived);
+  const trendExpTotal   = trendPct(totalExpenses, prevTotalExp);
+  const trendExpPaid    = trendPct(totalExpensesPaid, prevTotalExpPaid);
 
   // ── Toggle payment ────────────────────────────────────────
   const togglePayment = async (sub: Subscription, monthDate: Date) => {
@@ -319,51 +326,61 @@ export default function DashboardPage() {
           </div>
         </motion.div>
 
-        {/* ── KPI Grid ────────────────────────────────────────── */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-          <div className="lg:col-span-1">
+        {/* ── KPI Grid — Receitas ─────────────────────────────── */}
+        <div>
+          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest mb-2 pl-1">Receitas</p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
             <KpiCard
               label="Previsto" value={fmt(expectedRevenue)}
               icon={TrendingUp} color="slate" delay={0.00}
               tooltip="Soma de todas as assinaturas ativas"
             />
-          </div>
-          <div className="lg:col-span-1">
             <KpiCard
               label="Recebido" value={fmt(receivedRevenue)}
               icon={DollarSign} color="emerald" delay={0.06}
               tooltip="Pagamentos recebidos neste mês"
               trend={trendReceived} prevLabel={prevMonthLabel}
             />
-          </div>
-          <div className="lg:col-span-1">
             <KpiCard
               label="Em Aberto" value={fmt(openRevenue)}
               icon={AlertCircle} color="rose" delay={0.12}
               tooltip="Total ainda pendente"
               trend={trendOpen !== null ? -trendOpen : null} prevLabel={prevMonthLabel}
             />
-          </div>
-          <div className="lg:col-span-1">
-            <KpiCard
-              label="Despesas" value={fmt(totalExpenses)}
-              icon={CreditCard} color="blue" delay={0.18}
-              tooltip="Total de despesas pagas"
-            />
-          </div>
-          <div className="lg:col-span-1">
             <KpiCard
               label="Lucro Líquido" value={fmt(realIncome)}
-              icon={Activity} color="emerald" delay={0.24}
+              icon={Activity} color="emerald" delay={0.18}
               tooltip="Recebido menos despesas pagas"
               trend={trendIncome} prevLabel={prevMonthLabel}
             />
-          </div>
-          <div className="lg:col-span-1">
             <RevenueProgress
               received={receivedRevenue} expected={expectedRevenue}
               prevReceived={prevReceived} prevExpected={expectedRevenue}
               prevLabel={prevMonthLabel}
+            />
+          </div>
+        </div>
+
+        {/* ── KPI Grid — Despesas ──────────────────────────────── */}
+        <div>
+          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest mb-2 pl-1">Despesas</p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            <KpiCard
+              label="Total Despesas" value={fmt(totalExpenses)}
+              icon={CreditCard} color="blue" delay={0.00}
+              tooltip="Soma de todas as despesas do mês"
+              trend={trendExpTotal !== null ? -trendExpTotal : null} prevLabel={prevMonthLabel}
+            />
+            <KpiCard
+              label="Despesas Pagas" value={fmt(totalExpensesPaid)}
+              icon={Check} color="rose" delay={0.06}
+              tooltip="Despesas já quitadas neste mês"
+              trend={trendExpPaid !== null ? -trendExpPaid : null} prevLabel={prevMonthLabel}
+            />
+            <KpiCard
+              label="Desp. Pendentes" value={fmt(totalExpensesPend)}
+              icon={AlertCircle} color="slate" delay={0.12}
+              tooltip="Despesas ainda não pagas"
             />
           </div>
         </div>
