@@ -73,13 +73,27 @@ export default function ExpensesPage() {
     loadData();
   };
 
-  const monthExpenses = expenses.filter(e => {
+  const filterByMonth = (month: Date) => expenses.filter(e => {
     const d = new Date(e.date);
-    return d.getMonth() === currentViewMonth.getMonth() && d.getFullYear() === currentViewMonth.getFullYear();
+    return d.getMonth() === month.getMonth() && d.getFullYear() === month.getFullYear();
   });
 
+  const prevMonth = subMonths(currentViewMonth, 1);
+  const monthExpenses = filterByMonth(currentViewMonth);
+  const prevMonthExpenses = filterByMonth(prevMonth);
+
+  const monthTotal = monthExpenses.reduce((acc, e) => acc + Number(e.amount), 0);
   const monthPaidTotal = monthExpenses.filter(e => e.paid).reduce((acc, e) => acc + Number(e.amount), 0);
   const monthPendingTotal = monthExpenses.filter(e => !e.paid).reduce((acc, e) => acc + Number(e.amount), 0);
+
+  const prevMonthTotal = prevMonthExpenses.reduce((acc, e) => acc + Number(e.amount), 0);
+  const prevMonthPaidTotal = prevMonthExpenses.filter(e => e.paid).reduce((acc, e) => acc + Number(e.amount), 0);
+
+  const totalDiff = prevMonthTotal > 0 ? ((monthTotal - prevMonthTotal) / prevMonthTotal) * 100 : null;
+  const paidDiff  = prevMonthPaidTotal > 0 ? ((monthPaidTotal - prevMonthPaidTotal) / prevMonthPaidTotal) * 100 : null;
+
+  const fmt = (v: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
+  const prevLabel = format(prevMonth, 'MMM', { locale: ptBR }).replace('.', '');
 
   return (
     <div className="space-y-6">
@@ -135,17 +149,29 @@ export default function ExpensesPage() {
         </Button>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-3">
+        {/* Total do mês */}
         {[
-          { label: 'Total Pago',     value: monthPaidTotal,    color: '#EF4444' },
-          { label: 'Total Pendente', value: monthPendingTotal, color: '#F59E0B' },
+          { label: 'Total Despesas', value: monthTotal, prev: prevMonthTotal, diff: totalDiff, color: '#EF4444' },
+          { label: 'Total Pago',     value: monthPaidTotal, prev: prevMonthPaidTotal, diff: paidDiff, color: '#10B981' },
+          { label: 'Pendente',       value: monthPendingTotal, prev: null, diff: null, color: '#F59E0B' },
         ].map((item, i) => (
           <motion.div key={item.label} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.07 }}>
             <div className="rounded-xl p-5 card-interactive" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
-              <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider mb-3">{item.label}</p>
-              <p className="tabular text-xl font-semibold" style={{ color: item.color }}>
-                {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.value)}
+              <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider mb-2">{item.label}</p>
+              <p className="tabular text-xl font-semibold mb-2" style={{ color: item.color }}>
+                {fmt(item.value)}
               </p>
+              {item.diff !== null && item.prev !== null ? (
+                <div className="flex items-center gap-2">
+                  <span className={`text-xs font-semibold px-1.5 py-0.5 rounded-md ${item.diff > 0 ? 'bg-red-500/10 text-red-400' : item.diff < 0 ? 'bg-emerald-500/10 text-emerald-400' : 'bg-muted text-muted-foreground'}`}>
+                    {item.diff > 0 ? '▲' : item.diff < 0 ? '▼' : '–'} {Math.abs(item.diff).toFixed(1)}%
+                  </span>
+                  <span className="text-[10px] text-muted-foreground">{prevLabel}: {fmt(item.prev)}</span>
+                </div>
+              ) : item.prev !== null && item.prev > 0 ? (
+                <span className="text-[10px] text-muted-foreground">{prevLabel}: {fmt(item.prev)}</span>
+              ) : null}
             </div>
           </motion.div>
         ))}
