@@ -9,9 +9,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from '@/components/ui/label';
 import { getExpenses, addExpense, deleteExpense, updateExpense } from '@/lib/data-store';
 import { Expense } from '@/lib/types';
-import { Plus, Trash2, CheckCircle2, Clock } from 'lucide-react';
+import { Plus, Trash2, CheckCircle2, Clock, ChevronLeft, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
-import { format } from 'date-fns';
+import { format, startOfMonth, addMonths, subMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Badge } from '@/components/ui/badge';
 import { motion } from 'motion/react';
@@ -20,6 +20,7 @@ import { PageHeader } from '@/components/PageHeader';
 export default function ExpensesPage() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [currentViewMonth, setCurrentViewMonth] = useState(startOfMonth(new Date()));
 
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
@@ -72,20 +73,13 @@ export default function ExpensesPage() {
     loadData();
   };
 
-  // filter current month for the summary
-  const today = new Date();
-  const currentMonthExpenses = expenses.filter(e => {
+  const monthExpenses = expenses.filter(e => {
     const d = new Date(e.date);
-    return d.getMonth() === today.getMonth() && d.getFullYear() === today.getFullYear();
+    return d.getMonth() === currentViewMonth.getMonth() && d.getFullYear() === currentViewMonth.getFullYear();
   });
 
-  const currentMonthPaidTotal = expenses
-    .filter(e => e.paid)
-    .reduce((acc, e) => acc + Number(e.amount), 0);
-
-  const currentMonthPendingTotal = expenses
-    .filter(e => !e.paid)
-    .reduce((acc, e) => acc + Number(e.amount), 0);
+  const monthPaidTotal = monthExpenses.filter(e => e.paid).reduce((acc, e) => acc + Number(e.amount), 0);
+  const monthPendingTotal = monthExpenses.filter(e => !e.paid).reduce((acc, e) => acc + Number(e.amount), 0);
 
   return (
     <div className="space-y-6">
@@ -125,10 +119,26 @@ export default function ExpensesPage() {
         }
       />
 
+      {/* Month Navigation */}
+      <div className="flex items-center justify-between glass-panel p-4 rounded-[1.5rem] shadow-lg">
+        <Button variant="outline" size="icon" onClick={() => setCurrentViewMonth(prev => subMonths(prev, 1))} className="bg-muted text-foreground hover:bg-muted/80">
+          <ChevronLeft className="w-5 h-5" />
+        </Button>
+        <div className="flex flex-col items-center">
+          <span className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1 font-semibold">Competência</span>
+          <span className="text-lg font-bold text-primary uppercase">
+            {format(currentViewMonth, 'MMM yyyy', { locale: ptBR }).replace('.', '')}
+          </span>
+        </div>
+        <Button variant="outline" size="icon" onClick={() => setCurrentViewMonth(prev => addMonths(prev, 1))} className="bg-muted text-foreground hover:bg-muted/80">
+          <ChevronRight className="w-5 h-5" />
+        </Button>
+      </div>
+
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {[
-          { label: 'Total Pago',     value: currentMonthPaidTotal,    color: '#EF4444' },
-          { label: 'Total Pendente', value: currentMonthPendingTotal, color: '#F59E0B' },
+          { label: 'Total Pago',     value: monthPaidTotal,    color: '#EF4444' },
+          { label: 'Total Pendente', value: monthPendingTotal, color: '#F59E0B' },
         ].map((item, i) => (
           <motion.div key={item.label} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.07 }}>
             <div className="rounded-xl p-5 card-interactive" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
@@ -160,14 +170,14 @@ export default function ExpensesPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {expenses.length === 0 ? (
+                {monthExpenses.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={5} className="text-center h-24 text-muted-foreground">
-                      Nenhuma despesa registrada.
+                      Nenhuma despesa em {format(currentViewMonth, 'MMMM yyyy', { locale: ptBR })}.
                     </TableCell>
                   </TableRow>
                 ) : (
-                  expenses.map((expense, index) => (
+                  monthExpenses.map((expense, index) => (
                     <motion.tr 
                       key={expense.id}
                       initial={{ opacity: 0, x: -10 }} 
