@@ -85,10 +85,9 @@ async function main() {
     const sub  = { id: doc.id, ...doc.data() };
     const name = sub.clientName || 'Cliente';
 
-    // ── Não envia se já pagou este mês (verifica payments e flag legada) ───
-    const paidThisMonth = sub.payments?.[currentMonthKey] === true;
-    const paidLegacy    = sub.paid === true;
-    const isPaid        = paidThisMonth || paidLegacy;
+    // ── Não envia se já pagou este mês ─────────────────────────────────────
+    // Usa apenas payments[currentMonthKey]; ignora sub.paid (campo legado de meses anteriores)
+    const isPaid = sub.payments?.[currentMonthKey] === true;
     if (isPaid) {
       console.log(`⏭️  ${name} — já pagou este mês, pulando.`);
       skipped++;
