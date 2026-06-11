@@ -295,8 +295,7 @@ export default function DashboardPage() {
       ? sub.payments[mKey] === true
       : (mKey === currentMonthKey ? sub.paid === true : false);
     const newPay = { ...(sub.payments ?? {}), [mKey]: !isPaid };
-    const legacy = mKey === currentMonthKey ? { paid: !isPaid } : {};
-    await updateSubscription(sub.id, { payments: newPay, ...legacy });
+    await updateSubscription(sub.id, { payments: newPay });
     toast.success(!isPaid ? 'Marcado como pago ✓' : 'Pagamento removido');
     loadData();
   };

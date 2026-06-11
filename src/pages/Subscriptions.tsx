@@ -122,13 +122,11 @@ export default function SubscriptionsPage() {
     
     if (isPaid) {
       newPayments[currentMonthKey] = false;
-      // also clear legacy
-      await updateSubscription(sub.id, { payments: newPayments, paid: false });
+      await updateSubscription(sub.id, { payments: newPayments });
       toast.success('Marcado como pendente.');
     } else {
       newPayments[currentMonthKey] = true;
-      const now = new Date().getTime();
-      await updateSubscription(sub.id, { payments: newPayments, paid: true, lastPaymentDate: now });
+      await updateSubscription(sub.id, { payments: newPayments, lastPaymentDate: new Date().getTime() });
       toast.success('Marcado como pago!');
     }
     loadData();

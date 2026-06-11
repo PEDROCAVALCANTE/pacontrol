@@ -76,10 +76,7 @@ export default function AgendaPage() {
     const newPayments = { ...(sub.payments || {}) };
     newPayments[monthKey] = !isPaid;
 
-    // For current month backwards compatibility
-    const paidLegacyUpdate = monthKey === format(today, 'yyyy-MM') ? { paid: !isPaid } : {};
-
-    await updateSubscription(sub.id, { payments: newPayments, ...paidLegacyUpdate });
+    await updateSubscription(sub.id, { payments: newPayments });
     toast.success(!isPaid ? 'Pagamento confirmado!' : 'Pagamento desfeito');
     loadData();
   };
