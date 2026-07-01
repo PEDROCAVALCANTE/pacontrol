@@ -2,7 +2,6 @@
   "framework": "vite",
   "buildCommand": "npm run build",
   "installCommand": "npm install",
-  "public": false,
   "rewrites": [
     {
       "source": "/(.*)",
