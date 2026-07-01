@@ -30,13 +30,19 @@ function todayBRT() {
 
 function reminderMessage(name, dueDay, value) {
   return (
-    `Olá, ${name}! 👋\n\n` +
-    `Passando para lembrar que sua mensalidade vence *amanhã (dia ${dueDay})*. 📅\n\n` +
-    `Valor: *${formatCurrency(value)}* 💰\n\n` +
-    `Para facilitar, segue nossa chave PIX:\n` +
-    `🔑 *62991803975* (Nubank)\n\n` +
-    `Não esqueça de realizar o pagamento para manter seu acesso ativo! 🙏\n\n` +
-    `Qualquer dúvida, só chamar! 😊`
+    `🤖 _Mensagem automática do sistema de gestão PA Control_\n` +
+    `━━━━━━━━━━━━━━━━━━━━━━\n\n` +
+    `Olá, *${name}*! 👋😊\n\n` +
+    `⚠️ *Lembrete de vencimento!*\n\n` +
+    `📅 Sua mensalidade vence *amanhã, dia ${dueDay}*.\n\n` +
+    `💵 Valor: *${formatCurrency(value)}*\n\n` +
+    `━━━━━━━━━━━━━━━━━━━━━━\n` +
+    `💳 *Chave PIX para pagamento:*\n` +
+    `🔑 *62991803975*\n` +
+    `🏦 Nubank\n` +
+    `━━━━━━━━━━━━━━━━━━━━━━\n\n` +
+    `✅ Após o pagamento, seu acesso continua ativo normalmente!\n\n` +
+    `Qualquer dúvida é só chamar! 💬🙏`
   );
 }
 
