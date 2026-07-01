@@ -22,19 +22,37 @@ function formatCurrency(value) {
 }
 
 function todayBRT() {
-  // Retorna a data de hoje no fuso de Brasília (UTC-3) no formato yyyy-MM-dd
   const now = new Date();
   const brt = new Date(now.getTime() - 3 * 60 * 60 * 1000);
   return brt.toISOString().slice(0, 10);
 }
 
-function reminderMessage(name, dueDay, value) {
+// ── Mensagens por tipo ────────────────────────────────────────────────────────
+
+function msgAviso(name, dueDay, value) {
   return (
     `🤖 _Mensagem automática do sistema de gestão PA Control_\n` +
     `━━━━━━━━━━━━━━━━━━━━━━\n\n` +
     `Olá, *${name}*! 👋😊\n\n` +
-    `⚠️ *Lembrete de vencimento!*\n\n` +
-    `📅 Sua mensalidade vence *amanhã, dia ${dueDay}*.\n\n` +
+    `📢 *Aviso de vencimento próximo!*\n\n` +
+    `📅 Sua mensalidade vence no *dia ${dueDay}* deste mês.\n\n` +
+    `💵 Valor: *${formatCurrency(value)}*\n\n` +
+    `━━━━━━━━━━━━━━━━━━━━━━\n` +
+    `💳 *Chave PIX para pagamento:*\n` +
+    `🔑 *62991803975*\n` +
+    `🏦 Nubank\n` +
+    `━━━━━━━━━━━━━━━━━━━━━━\n\n` +
+    `✅ Qualquer dúvida é só chamar! 💬🙏`
+  );
+}
+
+function msgAmanha(name, dueDay, value) {
+  return (
+    `🤖 _Mensagem automática do sistema de gestão PA Control_\n` +
+    `━━━━━━━━━━━━━━━━━━━━━━\n\n` +
+    `Olá, *${name}*! 👋😊\n\n` +
+    `⚠️ *Sua mensalidade vence amanhã!*\n\n` +
+    `📅 Vencimento: *amanhã, dia ${dueDay}*\n` +
     `💵 Valor: *${formatCurrency(value)}*\n\n` +
     `━━━━━━━━━━━━━━━━━━━━━━\n` +
     `💳 *Chave PIX para pagamento:*\n` +
@@ -42,6 +60,42 @@ function reminderMessage(name, dueDay, value) {
     `🏦 Nubank\n` +
     `━━━━━━━━━━━━━━━━━━━━━━\n\n` +
     `✅ Após o pagamento, seu acesso continua ativo normalmente!\n\n` +
+    `Qualquer dúvida é só chamar! 💬🙏`
+  );
+}
+
+function msgHoje(name, dueDay, value) {
+  return (
+    `🤖 _Mensagem automática do sistema de gestão PA Control_\n` +
+    `━━━━━━━━━━━━━━━━━━━━━━\n\n` +
+    `Olá, *${name}*! 👋😊\n\n` +
+    `🔔 *Sua mensalidade vence HOJE!*\n\n` +
+    `📅 Vencimento: *hoje, dia ${dueDay}*\n` +
+    `💵 Valor: *${formatCurrency(value)}*\n\n` +
+    `━━━━━━━━━━━━━━━━━━━━━━\n` +
+    `💳 *Chave PIX para pagamento:*\n` +
+    `🔑 *62991803975*\n` +
+    `🏦 Nubank\n` +
+    `━━━━━━━━━━━━━━━━━━━━━━\n\n` +
+    `✅ Realize o pagamento hoje para manter seu acesso ativo!\n\n` +
+    `Qualquer dúvida é só chamar! 💬🙏`
+  );
+}
+
+function msgAtrasada(name, dueDay, value, daysLate) {
+  return (
+    `🤖 _Mensagem automática do sistema de gestão PA Control_\n` +
+    `━━━━━━━━━━━━━━━━━━━━━━\n\n` +
+    `Olá, *${name}*! 👋\n\n` +
+    `🚨 *Mensalidade em atraso!*\n\n` +
+    `📅 Venceu em: *dia ${dueDay}* (${daysLate} dia${daysLate > 1 ? 's' : ''} em atraso)\n` +
+    `💵 Valor: *${formatCurrency(value)}*\n\n` +
+    `━━━━━━━━━━━━━━━━━━━━━━\n` +
+    `💳 *Chave PIX para pagamento:*\n` +
+    `🔑 *62991803975*\n` +
+    `🏦 Nubank\n` +
+    `━━━━━━━━━━━━━━━━━━━━━━\n\n` +
+    `⚠️ Regularize o pagamento para evitar interrupção do serviço.\n\n` +
     `Qualquer dúvida é só chamar! 💬🙏`
   );
 }
@@ -66,21 +120,22 @@ async function sendWhatsApp(phone, message) {
 
 // ── Main ──────────────────────────────────────────────────────────────────────
 async function main() {
-  const today    = todayBRT();
-  const tomorrow = new Date(today + 'T12:00:00Z');
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  const tomorrowDay     = tomorrow.getDate();
-  const currentMonthKey = `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, '0')}`;
+  const today       = todayBRT();
+  const todayDate   = new Date(today + 'T12:00:00Z');
+  const todayDay    = todayDate.getDate();
+  const year        = todayDate.getFullYear();
+  const month       = todayDate.getMonth() + 1;
+  const currentMonthKey = `${year}-${String(month).padStart(2, '0')}`;
 
-  console.log(`\n📅 [${today}] Verificando vencimentos para o dia ${tomorrowDay}...\n`);
+  console.log(`\n📅 [${today}] Dia ${todayDay} — verificando mensagens a enviar...\n`);
 
+  // Busca todas as assinaturas ativas
   const snapshot = await db.collection('subscriptions')
     .where('status', '==', 'active')
-    .where('dueDay', '==', tomorrowDay)
     .get();
 
   if (snapshot.empty) {
-    console.log('✅ Nenhum vencimento amanhã.');
+    console.log('✅ Nenhuma assinatura ativa.');
     return;
   }
 
@@ -90,48 +145,70 @@ async function main() {
   for (const doc of snapshot.docs) {
     const sub  = { id: doc.id, ...doc.data() };
     const name = sub.clientName || 'Cliente';
+    const dueDay = sub.dueDay;
 
-    // ── Não envia se já pagou este mês ─────────────────────────────────────
-    // Usa apenas payments[currentMonthKey]; ignora sub.paid (campo legado de meses anteriores)
-    const isPaid = sub.payments?.[currentMonthKey] === true;
-    if (isPaid) {
-      console.log(`⏭️  ${name} — já pagou este mês, pulando.`);
-      skipped++;
+    // ── Já pagou este mês → pula ────────────────────────────────────────────
+    if (sub.payments?.[currentMonthKey] === true) {
       continue;
     }
 
-    // ── Não envia se já mandou lembrete hoje ────────────────────────────────
+    // ── Já enviou mensagem hoje → pula ──────────────────────────────────────
     if (sub.lastReminderDate === today) {
-      console.log(`⏭️  ${name} — lembrete já enviado hoje (${today}).`);
+      console.log(`⏭️  ${name} — mensagem já enviada hoje.`);
       skipped++;
       continue;
     }
 
-    // ── Sem telefone ────────────────────────────────────────────────────────
-    const phone = sub.clientPhone;
-    if (!phone) {
-      console.log(`⚠️  ${name} — sem telefone cadastrado.`);
-      skipped++;
+    // ── Sem telefone → pula ─────────────────────────────────────────────────
+    if (!sub.clientPhone) {
       continue;
     }
+
+    // ── Determina o tipo de mensagem pelo dia ────────────────────────────────
+    // Dias de atraso: positivo = atrasado, negativo = falta N dias
+    const diff = todayDay - dueDay;
+    let msg = null;
+    let tipo = '';
+
+    if (diff < -2) {
+      // Mais de 2 dias antes: sem mensagem (ex: dia 1 a 7 quando dueDay=10)
+      // Exceto se for exatamente 3 dias antes (dia 7 para vencimento dia 10)
+      if (diff === -3) {
+        msg  = msgAviso(name, dueDay, sub.monthlyValue);
+        tipo = 'aviso antecipado';
+      } else {
+        continue;
+      }
+    } else if (diff === -1) {
+      // Um dia antes do vencimento
+      msg  = msgAmanha(name, dueDay, sub.monthlyValue);
+      tipo = 'vence amanhã';
+    } else if (diff === 0) {
+      // Dia do vencimento
+      msg  = msgHoje(name, dueDay, sub.monthlyValue);
+      tipo = 'vence hoje';
+    } else if (diff > 0) {
+      // Em atraso — só envia 1x por dia (já garantido pelo lastReminderDate)
+      msg  = msgAtrasada(name, dueDay, sub.monthlyValue, diff);
+      tipo = `atrasada ${diff}d`;
+    }
+
+    if (!msg) continue;
 
     try {
-      const msg = reminderMessage(name, sub.dueDay, sub.monthlyValue);
-      await sendWhatsApp(phone, msg);
+      await sendWhatsApp(sub.clientPhone, msg);
 
-      // Marca que lembrete foi enviado hoje
       await db.collection('subscriptions').doc(doc.id).update({
         lastReminderDate: today,
         lastReminderAt: FieldValue.serverTimestamp(),
       });
 
-      console.log(`✅ Lembrete enviado para ${name} (${phone})`);
+      console.log(`✅ [${tipo}] Enviado para ${name}`);
       sent++;
     } catch (err) {
       console.error(`❌ Erro ao enviar para ${name}:`, err.message);
     }
 
-    // Delay entre mensagens para não ser bloqueado pelo WhatsApp
     await new Promise(r => setTimeout(r, 2500));
   }
 
