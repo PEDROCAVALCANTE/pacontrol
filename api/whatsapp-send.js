@@ -25,7 +25,7 @@ export default async function handler(req, res) {
     const r = await fetch(`${url}/message/sendText/${instance}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', apikey: key },
-      body: JSON.stringify({ number, textMessage: { text: message } }),
+      body: JSON.stringify({ number, text: message }),
     });
     const data = await r.json();
     res.status(r.status).json(data);
