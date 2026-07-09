@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { getClients, getSubscriptions, addSubscription, updateSubscription, deleteSubscription } from '@/lib/data-store';
 import { Client, Subscription } from '@/lib/types';
-import { Search, Plus, Edit2, CheckCircle2, MessageCircle, Trash2 } from 'lucide-react';
+import { Search, Plus, Edit2, CheckCircle2, MessageCircle, Trash2, Send } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'motion/react';
 import { setDate, isBefore, startOfDay, format } from 'date-fns';
@@ -23,6 +23,7 @@ export default function SubscriptionsPage() {
   const [search, setSearch] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingSub, setEditingSub] = useState<Subscription | null>(null);
+  const [sendingId, setSendingId] = useState<string | null>(null);
 
   // Merged form fields
   const [clientName, setClientName] = useState('');
@@ -116,9 +117,13 @@ export default function SubscriptionsPage() {
   const today = startOfDay(new Date());
   const currentMonthKey = format(today, 'yyyy-MM');
 
-  const sendThankYou = async (sub: Subscription) => {
+  const sendThankYou = async (sub: Subscription, manual = false) => {
     const phone = getSubClientPhone(sub);
-    if (!phone) return;
+    if (!phone) {
+      if (manual) toast.error('Assinatura sem telefone cadastrado.');
+      return;
+    }
+    if (manual) setSendingId(sub.id);
     const name = getSubClientName(sub);
     const value = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(sub.monthlyValue));
     const message =
@@ -131,13 +136,19 @@ export default function SubscriptionsPage() {
       `Obrigado por manter sua assinatura em dia! 🙏\n\n` +
       `Qualquer dúvida é só chamar! 💬`;
     try {
-      await fetch('/api/whatsapp-send', {
+      const r = await fetch('/api/whatsapp-send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phone, message }),
       });
+      if (manual) {
+        if (r.ok) toast.success(`Mensagem enviada para ${name}! ✅`);
+        else toast.error('Erro ao enviar mensagem. Verifique o WhatsApp.');
+      }
     } catch {
-      // falha silenciosa — não bloqueia o fluxo de pagamento
+      if (manual) toast.error('Erro ao enviar mensagem.');
+    } finally {
+      if (manual) setSendingId(null);
     }
   };
 
@@ -325,6 +336,16 @@ export default function SubscriptionsPage() {
                         {isPaid ? 'Desfazer' : 'Pagar'}
                       </Button>
                     )}
+                    {isPaid && cPhone && (
+                      <Button
+                        variant="ghost" size="icon"
+                        title="Reenviar mensagem de obrigado"
+                        disabled={sendingId === sub.id}
+                        onClick={() => sendThankYou(sub, true)}
+                      >
+                        <Send className={`h-4 w-4 text-emerald-500 ${sendingId === sub.id ? 'animate-pulse' : ''}`} />
+                      </Button>
+                    )}
                     <Button variant="ghost" size="icon" onClick={() => handleSendReminder(sub)}>
                       <MessageCircle className="h-4 w-4 text-emerald-500" />
                     </Button>
@@ -408,6 +429,16 @@ export default function SubscriptionsPage() {
                                   >
                                     <CheckCircle2 className="h-4 w-4 mr-1.5" />
                                     {isPaid ? 'Desfazer' : 'Pagar'}
+                                  </Button>
+                                )}
+                                {isPaid && cPhone && (
+                                  <Button
+                                    variant="ghost" size="icon"
+                                    title="Reenviar mensagem de obrigado"
+                                    disabled={sendingId === sub.id}
+                                    onClick={() => sendThankYou(sub, true)}
+                                  >
+                                    <Send className={`h-4 w-4 text-emerald-500 ${sendingId === sub.id ? 'animate-pulse' : ''}`} />
                                   </Button>
                                 )}
                                 <Button variant="ghost" size="icon" onClick={() => handleSendReminder(sub)} title="Enviar Lembrete WhatsApp">
