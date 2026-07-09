@@ -4,6 +4,7 @@ import DashboardPage from './pages/Dashboard';
 import AgendaPage from './pages/Agenda';
 import ExpensesPage from './pages/Expenses';
 import SubscriptionsPage from './pages/Subscriptions';
+import WhatsAppPage from './pages/WhatsApp';
 import LoginPage from './pages/Login';
 import { AuthProvider } from './components/auth-provider';
 import AppLayout from './components/AppLayout';
@@ -24,6 +25,7 @@ export default function App() {
               <Route path="/agenda" element={<AppLayout><AgendaPage /></AppLayout>} />
               <Route path="/subscriptions" element={<AppLayout><SubscriptionsPage /></AppLayout>} />
               <Route path="/expenses" element={<AppLayout><ExpensesPage /></AppLayout>} />
+              <Route path="/whatsapp" element={<AppLayout><WhatsAppPage /></AppLayout>} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
             <Toaster position="top-right" expand={true} richColors />

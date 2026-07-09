@@ -9,6 +9,7 @@ const PAGE_TITLES: Record<string, string> = {
   '/agenda':        'Agenda',
   '/subscriptions': 'Clientes & Assinaturas',
   '/expenses':      'Despesas',
+  '/whatsapp':      'WhatsApp',
 };
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {

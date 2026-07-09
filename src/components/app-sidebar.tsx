@@ -6,6 +6,7 @@ import {
   ExitIcon,
   CalendarIcon,
 } from '@radix-ui/react-icons';
+import { MessageCircle } from 'lucide-react';
 import {
   Sidebar,
   SidebarContent,
@@ -27,6 +28,7 @@ const navItems = [
   { title: 'Agenda',                 url: '/agenda',        icon: CalendarIcon  },
   { title: 'Clientes & Assinaturas', url: '/subscriptions', icon: CardStackIcon },
   { title: 'Despesas',               url: '/expenses',      icon: FileTextIcon  },
+  { title: 'WhatsApp',               url: '/whatsapp',      icon: MessageCircle },
 ];
 
 export function AppSidebar() {
