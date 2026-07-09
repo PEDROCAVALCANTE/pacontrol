@@ -1,9 +1,11 @@
+const clean = s => s?.replace(/^﻿/, '').trim();
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
 
-  const url      = process.env.EVOLUTION_API_URL?.replace(/\/$/, '');
-  const key      = process.env.EVOLUTION_API_KEY;
-  const instance = process.env.EVOLUTION_INSTANCE;
+  const url      = clean(process.env.EVOLUTION_API_URL)?.replace(/\/$/, '');
+  const key      = clean(process.env.EVOLUTION_API_KEY);
+  const instance = clean(process.env.EVOLUTION_INSTANCE);
 
   if (!url || !key || !instance) {
     return res.status(500).json({ error: 'Evolution API não configurada' });
