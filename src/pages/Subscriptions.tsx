@@ -116,10 +116,35 @@ export default function SubscriptionsPage() {
   const today = startOfDay(new Date());
   const currentMonthKey = format(today, 'yyyy-MM');
 
+  const sendThankYou = async (sub: Subscription) => {
+    const phone = getSubClientPhone(sub);
+    if (!phone) return;
+    const name = getSubClientName(sub);
+    const value = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(sub.monthlyValue));
+    const message =
+      `🤖 _Mensagem automática do sistema de gestão PA Control_\n` +
+      `━━━━━━━━━━━━━━━━━━━━━━\n\n` +
+      `Olá, *${name}*! 👋😊\n\n` +
+      `✅ *Pagamento confirmado!*\n\n` +
+      `💵 Valor: *${value}*\n` +
+      `📅 Mês de competência: *${new Date().toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}*\n\n` +
+      `Obrigado por manter sua assinatura em dia! 🙏\n\n` +
+      `Qualquer dúvida é só chamar! 💬`;
+    try {
+      await fetch('/api/whatsapp-send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone, message }),
+      });
+    } catch {
+      // falha silenciosa — não bloqueia o fluxo de pagamento
+    }
+  };
+
   const markAsPaid = async (sub: Subscription) => {
     const isPaid = sub.payments ? sub.payments[currentMonthKey] === true : sub.paid === true;
     const newPayments = { ...(sub.payments || {}) };
-    
+
     if (isPaid) {
       newPayments[currentMonthKey] = false;
       await updateSubscription(sub.id, { payments: newPayments });
@@ -128,6 +153,7 @@ export default function SubscriptionsPage() {
       newPayments[currentMonthKey] = true;
       await updateSubscription(sub.id, { payments: newPayments, lastPaymentDate: new Date().getTime() });
       toast.success('Marcado como pago!');
+      sendThankYou(sub);
     }
     loadData();
   };

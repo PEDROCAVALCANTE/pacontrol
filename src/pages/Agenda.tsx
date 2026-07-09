@@ -71,6 +71,31 @@ export default function AgendaPage() {
   const monthKey = format(currentViewMonth, 'yyyy-MM');
   const today = new Date();
 
+  const sendThankYou = async (sub: Subscription) => {
+    const phone = sub.clientPhone;
+    if (!phone) return;
+    const name = sub.clientName || 'Cliente';
+    const value = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(sub.monthlyValue));
+    const message =
+      `🤖 _Mensagem automática do sistema de gestão PA Control_\n` +
+      `━━━━━━━━━━━━━━━━━━━━━━\n\n` +
+      `Olá, *${name}*! 👋😊\n\n` +
+      `✅ *Pagamento confirmado!*\n\n` +
+      `💵 Valor: *${value}*\n` +
+      `📅 Mês de competência: *${format(currentViewMonth, 'MMMM yyyy', { locale: ptBR })}*\n\n` +
+      `Obrigado por manter sua assinatura em dia! 🙏\n\n` +
+      `Qualquer dúvida é só chamar! 💬`;
+    try {
+      await fetch('/api/whatsapp-send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone, message }),
+      });
+    } catch {
+      // falha silenciosa
+    }
+  };
+
   const togglePayment = async (sub: Subscription) => {
     const isPaid = sub.payments ? sub.payments[monthKey] === true : (monthKey === format(today, 'yyyy-MM') ? sub.paid === true : false);
     const newPayments = { ...(sub.payments || {}) };
@@ -78,6 +103,7 @@ export default function AgendaPage() {
 
     await updateSubscription(sub.id, { payments: newPayments });
     toast.success(!isPaid ? 'Pagamento confirmado!' : 'Pagamento desfeito');
+    if (!isPaid) sendThankYou(sub);
     loadData();
   };
 
