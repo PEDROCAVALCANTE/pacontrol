@@ -22,7 +22,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <AppSidebar />
       <SidebarInset className="bg-transparent flex w-full flex-col min-h-svh">
         {/* Topbar */}
-        <header className="sticky top-0 z-20 flex h-14 items-center gap-3 px-5 border-b border-border/60 bg-background/70 backdrop-blur-md">
+        <header className="sticky top-0 z-20 flex h-14 items-center gap-3 px-5 border-b border-border bg-card/90 backdrop-blur-sm shadow-[0_1px_0_var(--border)]">
           <SidebarTrigger className="text-muted-foreground hover:text-foreground transition-colors" />
           <div className="w-px h-4 bg-border" />
           <span className="text-sm font-medium text-foreground">{title}</span>
