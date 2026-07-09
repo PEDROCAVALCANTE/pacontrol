@@ -29,7 +29,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </header>
 
         {/* Content */}
-        <main className="flex-1 p-6 md:p-8 overflow-x-hidden">
+        <main className="flex-1 p-4 sm:p-6 md:p-8 overflow-x-hidden">
           <motion.div
             key={pathname}
             initial={{ opacity: 0, y: 12 }}

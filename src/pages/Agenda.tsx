@@ -162,40 +162,40 @@ export default function AgendaPage() {
       />
 
       {/* Month Navigation & Summary */}
-      <div className="flex flex-col md:flex-row gap-6 items-center justify-between glass-panel p-4 sm:p-6 rounded-[1.5rem] shadow-lg">
-        <div className="flex items-center justify-between w-full md:w-auto gap-4">
-          <Button 
-            variant="outline" 
-            size="icon" 
-            onClick={handlePrevMonth} 
+      <div className="glass-panel p-4 rounded-[1.5rem] shadow-lg">
+        {/* Month selector */}
+        <div className="flex items-center justify-between gap-4 mb-4">
+          <Button
+            variant="outline" size="icon"
+            onClick={handlePrevMonth}
             disabled={currentViewMonth.getFullYear() < 2026 || (currentViewMonth.getFullYear() === 2026 && currentViewMonth.getMonth() <= 4)}
-            className="bg-muted text-foreground hover:bg-muted/80 disabled:opacity-50 disabled:cursor-not-allowed">
+            className="bg-muted text-foreground hover:bg-muted/80 disabled:opacity-50 disabled:cursor-not-allowed shrink-0">
             <ChevronLeft className="w-5 h-5" />
           </Button>
-          <div className="flex flex-col items-center min-w-[120px]">
-             <span className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wider mb-1 font-semibold">Competência</span>
-             <span className="text-lg sm:text-xl font-bold text-primary uppercase">
-                {format(currentViewMonth, 'MMM yyyy', { locale: ptBR }).replace('.', '')}
-             </span>
+          <div className="flex flex-col items-center">
+            <span className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5 font-semibold">Competência</span>
+            <span className="text-lg font-bold text-primary uppercase">
+              {format(currentViewMonth, 'MMM yyyy', { locale: ptBR }).replace('.', '')}
+            </span>
           </div>
-          <Button variant="outline" size="icon" onClick={handleNextMonth} className="bg-muted text-foreground hover:bg-muted/80">
+          <Button variant="outline" size="icon" onClick={handleNextMonth} className="bg-muted text-foreground hover:bg-muted/80 shrink-0">
             <ChevronRight className="w-5 h-5" />
           </Button>
         </div>
-
-        <div className="flex w-full md:w-auto justify-between gap-4 sm:gap-8 pt-4 md:pt-0">
-           <div className="flex flex-col items-center md:items-end">
-             <span className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wider">Previsto</span>
-             <span className="text-sm sm:text-lg font-bold text-foreground">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(expectedTotal)}</span>
-           </div>
-           <div className="flex flex-col items-center md:items-end">
-             <span className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wider">Recebido</span>
-             <span className="text-sm sm:text-lg font-bold text-emerald-500">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalReceived)}</span>
-           </div>
-           <div className="flex flex-col items-center md:items-end">
-             <span className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wider">Pendente</span>
-             <span className="text-sm sm:text-lg font-bold text-amber-500">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalPending)}</span>
-           </div>
+        {/* Summary */}
+        <div className="grid grid-cols-3 gap-2 pt-3" style={{ borderTop: '1px solid var(--border)' }}>
+          <div className="flex flex-col items-center">
+            <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Previsto</span>
+            <span className="text-sm font-bold text-foreground mt-0.5">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(expectedTotal)}</span>
+          </div>
+          <div className="flex flex-col items-center">
+            <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Recebido</span>
+            <span className="text-sm font-bold text-emerald-500 mt-0.5">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalReceived)}</span>
+          </div>
+          <div className="flex flex-col items-center">
+            <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Pendente</span>
+            <span className="text-sm font-bold text-amber-500 mt-0.5">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalPending)}</span>
+          </div>
         </div>
       </div>
 
@@ -208,48 +208,52 @@ export default function AgendaPage() {
           </div>
         ) : (
           scheduledItems.map((item, index) => (
-            <motion.div 
+            <motion.div
               key={item.id}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.05 }}
-              className="flex flex-col sm:flex-row items-center justify-between glass-panel p-5 rounded-2xl transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.3)] group"
+              className="glass-panel p-4 sm:p-5 rounded-2xl transition-all duration-300"
             >
-               <div className="flex items-center gap-6 w-full sm:w-auto">
-                 <div className="flex flex-col items-center justify-center bg-background w-14 h-14 rounded-xl shadow-inner">
-                    <span className="text-xs text-muted-foreground font-medium uppercase">Dia</span>
-                    <span className="text-xl font-bold text-foreground">{item.dueDay}</span>
-                 </div>
-                 
-                 <div className="flex flex-col">
-                   <h4 className="text-lg font-semibold text-foreground">{item.clientName}</h4>
-                   <p className="text-sm text-muted-foreground">{item.service || 'Assinatura Padrão'}</p>
-                 </div>
-               </div>
+              {/* Top row: day + name + badge */}
+              <div className="flex items-center gap-4 mb-3 sm:mb-0">
+                <div className="flex flex-col items-center justify-center bg-background w-12 h-12 sm:w-14 sm:h-14 rounded-xl shadow-inner shrink-0">
+                  <span className="text-[10px] text-muted-foreground font-medium uppercase">Dia</span>
+                  <span className="text-lg sm:text-xl font-bold text-foreground">{item.dueDay}</span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h4 className="text-[15px] font-semibold text-foreground truncate">{item.clientName}</h4>
+                  <p className="text-sm text-muted-foreground truncate">{item.service || 'Assinatura Padrão'}</p>
+                </div>
+                <Badge className={`border-none px-2.5 py-1 flex items-center shadow-none text-xs shrink-0 ${item.statusBg} ${item.statusColor}`}>
+                  {item.statusIcon}
+                  <span className="hidden sm:inline">{item.statusText}</span>
+                </Badge>
+              </div>
 
-               <div className="flex items-center justify-between w-full sm:w-auto mt-4 sm:mt-0 gap-6">
-                 <div className="flex flex-col items-end">
-                   <span className="text-sm font-medium text-muted-foreground">Valor</span>
-                   <span className="font-bold text-foreground">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.monthlyValue)}</span>
-                 </div>
-
-                 <Badge className={`border-none px-3 py-1.5 flex items-center shadow-none ${item.statusBg} ${item.statusColor}`}>
-                   {item.statusIcon}
-                   {item.statusText}
-                 </Badge>
-
-                 <Button 
-                   onClick={() => togglePayment(item)}
-                   className={`rounded-xl px-6 transition-all ${
-                     item.isPaid 
-                       ? 'bg-transparent border border-emerald-500/50 text-emerald-500 hover:bg-emerald-500/10' 
-                       : 'bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm'
-                   }`}
-                   variant={item.isPaid ? 'outline' : 'default'}
-                 >
-                   {item.isPaid ? 'Desfazer' : 'Confirmar Pgto'}
-                 </Button>
-               </div>
+              {/* Bottom row: value + button */}
+              <div className="flex items-center justify-between gap-3 sm:mt-0 pt-3 sm:pt-0"
+                   style={{ borderTop: '1px solid var(--border)' }}>
+                <div className="sm:hidden">
+                  <span className="text-xs text-muted-foreground">Valor</span>
+                  <p className="font-bold text-foreground text-sm">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.monthlyValue)}</p>
+                </div>
+                <span className="hidden sm:block font-bold text-foreground">
+                  {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.monthlyValue)}
+                </span>
+                <Button
+                  onClick={() => togglePayment(item)}
+                  size="sm"
+                  className={`rounded-xl px-4 sm:px-6 transition-all ${
+                    item.isPaid
+                      ? 'bg-transparent border border-emerald-500/50 text-emerald-500 hover:bg-emerald-500/10'
+                      : 'bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm'
+                  }`}
+                  variant={item.isPaid ? 'outline' : 'default'}
+                >
+                  {item.isPaid ? 'Desfazer' : 'Confirmar Pgto'}
+                </Button>
+              </div>
             </motion.div>
           ))
         )}

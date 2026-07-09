@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -206,7 +206,7 @@ export default function SubscriptionsPage() {
               <DialogTitle>{editingSub ? 'Editar Assinatura' : 'Nova Assinatura'}</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSave} className="space-y-4 pt-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="clientName">Nome do Cliente</Label>
                   <Input id="clientName" value={clientName} onChange={e => setClientName(e.target.value)} placeholder="Ex: João Silva" required />
@@ -216,7 +216,7 @@ export default function SubscriptionsPage() {
                   <Input id="responsible" value={responsible} onChange={e => setResponsible(e.target.value)} placeholder="Ex: Maria (Equipe)" />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="clientPhone">Telefone (WhatsApp)</Label>
                   <Input id="clientPhone" value={clientPhone} onChange={e => setClientPhone(e.target.value)} placeholder="(11) 99999-9999" />
@@ -226,7 +226,7 @@ export default function SubscriptionsPage() {
                   <Input id="service" value={service} onChange={e => setService(e.target.value)} placeholder="Ex: Manutenção Mensal" />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="value">Valor Mensal (R$)</Label>
                   <Input id="value" type="number" step="0.01" value={monthlyValue} onChange={e => setMonthlyValue(e.target.value)} required />
@@ -256,8 +256,8 @@ export default function SubscriptionsPage() {
       />
 
       <div className="rounded-xl overflow-hidden" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
-      <Card className="border-0 shadow-none bg-transparent">
-        <CardHeader>
+        {/* Search */}
+        <div className="p-4 pb-0">
           <div className="relative">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
@@ -267,101 +267,170 @@ export default function SubscriptionsPage() {
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Cliente</TableHead>
-                  <TableHead className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Responsável</TableHead>
-                  <TableHead className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Telefone</TableHead>
-                  <TableHead className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Serviço</TableHead>
-                  <TableHead className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Valor</TableHead>
-                  <TableHead className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Vencimento</TableHead>
-                  <TableHead className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Status</TableHead>
-                  <TableHead className="text-right text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                <AnimatePresence mode="popLayout">
-                {filteredSubs.length === 0 ? (
-                  <motion.tr
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                  >
-                    <TableCell colSpan={7} className="text-center h-24 text-muted-foreground">
-                      Nenhuma assinatura encontrada.
-                    </TableCell>
-                  </motion.tr>
-                ) : (
-                  filteredSubs.map((sub) => {
-                    const dueDate = setDate(today, sub.dueDay);
-                    const isPaid = sub.payments ? sub.payments[currentMonthKey] === true : sub.paid === true;
-                    const isLate = sub.status === 'active' && !isPaid && isBefore(dueDate, today);
-                    const cPhone = getSubClientPhone(sub);
-                    
-                    return (
-                    <motion.tr 
-                      key={sub.id}
-                      layout
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, scale: 0.95 }}
-                      className=""
-                    >
-                      <TableCell>
-                        <p className="font-medium whitespace-nowrap">{getSubClientName(sub)}</p>
-                      </TableCell>
-                      <TableCell className="whitespace-nowrap">{sub.responsible || '-'}</TableCell>
-                      <TableCell className="whitespace-nowrap">{cPhone || '-'}</TableCell>
-                      <TableCell className="whitespace-nowrap">{sub.service || '-'}</TableCell>
-                      <TableCell className="whitespace-nowrap tabular font-medium">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(sub.monthlyValue)}</TableCell>
-                      <TableCell className="whitespace-nowrap">Dia {sub.dueDay}</TableCell>
-                      <TableCell className="whitespace-nowrap">
-                        {sub.status === 'inactive' ? (
-                          <span className="pill-muted">Inativa</span>
-                        ) : isPaid ? (
-                          <span className="pill-success">● Pago</span>
-                        ) : isLate ? (
-                          <span className="pill-danger">● Atrasado</span>
-                        ) : (
-                          <span className="pill-warning">● Aberto</span>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-right flex items-center justify-end gap-2 whitespace-nowrap">
-                         {sub.status === 'active' && (
-                           <Button 
-                            variant={isPaid ? 'outline' : 'default'} 
-                            size="sm" 
-                            className={isPaid ? 'text-muted-foreground' : 'bg-emerald-600 hover:bg-emerald-700 text-white'}
-                            onClick={() => markAsPaid(sub)}
-                            title={isPaid ? 'Desmarcar pagamento' : 'Marcar como pago'}
+        </div>
+
+        {/* Mobile cards */}
+        <div className="sm:hidden p-4 space-y-3">
+          <AnimatePresence mode="popLayout">
+            {filteredSubs.length === 0 ? (
+              <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                className="text-center py-8 text-sm text-muted-foreground">
+                Nenhuma assinatura encontrada.
+              </motion.p>
+            ) : filteredSubs.map((sub) => {
+              const dueDate = setDate(today, sub.dueDay);
+              const isPaid  = sub.payments ? sub.payments[currentMonthKey] === true : sub.paid === true;
+              const isLate  = sub.status === 'active' && !isPaid && isBefore(dueDate, today);
+              const cPhone  = getSubClientPhone(sub);
+              return (
+                <motion.div
+                  key={sub.id}
+                  layout
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  className="rounded-xl p-4"
+                  style={{ background: 'var(--background)', border: '1px solid var(--border)' }}
+                >
+                  <div className="flex items-start justify-between mb-3">
+                    <div>
+                      <p className="font-semibold text-foreground text-[14px]">{getSubClientName(sub)}</p>
+                      {sub.service && <p className="text-xs text-muted-foreground mt-0.5">{sub.service}</p>}
+                    </div>
+                    {sub.status === 'inactive' ? (
+                      <span className="pill-muted">Inativa</span>
+                    ) : isPaid ? (
+                      <span className="pill-success">● Pago</span>
+                    ) : isLate ? (
+                      <span className="pill-danger">● Atrasado</span>
+                    ) : (
+                      <span className="pill-warning">● Aberto</span>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-1 mb-3 text-xs text-muted-foreground">
+                    <span>Vencimento: <b className="text-foreground">Dia {sub.dueDay}</b></span>
+                    <span>Valor: <b className="text-foreground">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(sub.monthlyValue)}</b></span>
+                    {sub.responsible && <span>Resp.: <b className="text-foreground">{sub.responsible}</b></span>}
+                    {cPhone && <span>Tel: <b className="text-foreground">{cPhone}</b></span>}
+                  </div>
+                  <div className="flex items-center gap-2 pt-3" style={{ borderTop: '1px solid var(--border)' }}>
+                    {sub.status === 'active' && (
+                      <Button
+                        variant={isPaid ? 'outline' : 'default'}
+                        size="sm"
+                        className={`flex-1 ${isPaid ? 'text-muted-foreground' : 'bg-emerald-600 hover:bg-emerald-700 text-white'}`}
+                        onClick={() => markAsPaid(sub)}
+                      >
+                        <CheckCircle2 className="h-4 w-4 mr-1.5" />
+                        {isPaid ? 'Desfazer' : 'Pagar'}
+                      </Button>
+                    )}
+                    <Button variant="ghost" size="icon" onClick={() => handleSendReminder(sub)}>
+                      <MessageCircle className="h-4 w-4 text-emerald-500" />
+                    </Button>
+                    <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(sub)}>
+                      <Edit2 className="h-4 w-4 text-blue-400" />
+                    </Button>
+                    <Button variant="ghost" size="icon" onClick={() => handleDelete(sub.id)}>
+                      <Trash2 className="h-4 w-4 text-rose-400" />
+                    </Button>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </AnimatePresence>
+        </div>
+
+        {/* Desktop table */}
+        <div className="hidden sm:block">
+          <Card className="border-0 shadow-none bg-transparent">
+            <CardContent className="pt-4">
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Cliente</TableHead>
+                      <TableHead className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Responsável</TableHead>
+                      <TableHead className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Telefone</TableHead>
+                      <TableHead className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Serviço</TableHead>
+                      <TableHead className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Valor</TableHead>
+                      <TableHead className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Vencimento</TableHead>
+                      <TableHead className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Status</TableHead>
+                      <TableHead className="text-right text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Ações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    <AnimatePresence mode="popLayout">
+                      {filteredSubs.length === 0 ? (
+                        <motion.tr initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                          <TableCell colSpan={8} className="text-center h-24 text-muted-foreground">
+                            Nenhuma assinatura encontrada.
+                          </TableCell>
+                        </motion.tr>
+                      ) : filteredSubs.map((sub) => {
+                        const dueDate = setDate(today, sub.dueDay);
+                        const isPaid  = sub.payments ? sub.payments[currentMonthKey] === true : sub.paid === true;
+                        const isLate  = sub.status === 'active' && !isPaid && isBefore(dueDate, today);
+                        const cPhone  = getSubClientPhone(sub);
+                        return (
+                          <motion.tr
+                            key={sub.id}
+                            layout
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
                           >
-                            <CheckCircle2 className="h-4 w-4 mr-1 md:mr-2" />
-                            <span className="hidden sm:inline">{isPaid ? 'Desfazer' : 'Pagar'}</span>
-                          </Button>
-                         )}
-                        <Button variant="ghost" size="icon" onClick={() => handleSendReminder(sub)} title="Enviar Lembrete WhatsApp">
-                          <MessageCircle className="h-4 w-4 text-emerald-500" />
-                        </Button>
-                        <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(sub)}>
-                          <Edit2 className="h-4 w-4 text-blue-400" />
-                        </Button>
-                        <Button variant="ghost" size="icon" onClick={() => handleDelete(sub.id)}>
-                          <Trash2 className="h-4 w-4 text-rose-400" />
-                        </Button>
-                      </TableCell>
-                    </motion.tr>
-                  )})
-                )}
-                </AnimatePresence>
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
+                            <TableCell><p className="font-medium whitespace-nowrap">{getSubClientName(sub)}</p></TableCell>
+                            <TableCell className="whitespace-nowrap">{sub.responsible || '-'}</TableCell>
+                            <TableCell className="whitespace-nowrap">{cPhone || '-'}</TableCell>
+                            <TableCell className="whitespace-nowrap">{sub.service || '-'}</TableCell>
+                            <TableCell className="whitespace-nowrap tabular font-medium">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(sub.monthlyValue)}</TableCell>
+                            <TableCell className="whitespace-nowrap">Dia {sub.dueDay}</TableCell>
+                            <TableCell className="whitespace-nowrap">
+                              {sub.status === 'inactive' ? (
+                                <span className="pill-muted">Inativa</span>
+                              ) : isPaid ? (
+                                <span className="pill-success">● Pago</span>
+                              ) : isLate ? (
+                                <span className="pill-danger">● Atrasado</span>
+                              ) : (
+                                <span className="pill-warning">● Aberto</span>
+                              )}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <div className="flex items-center justify-end gap-2 whitespace-nowrap">
+                                {sub.status === 'active' && (
+                                  <Button
+                                    variant={isPaid ? 'outline' : 'default'}
+                                    size="sm"
+                                    className={isPaid ? 'text-muted-foreground' : 'bg-emerald-600 hover:bg-emerald-700 text-white'}
+                                    onClick={() => markAsPaid(sub)}
+                                  >
+                                    <CheckCircle2 className="h-4 w-4 mr-1.5" />
+                                    {isPaid ? 'Desfazer' : 'Pagar'}
+                                  </Button>
+                                )}
+                                <Button variant="ghost" size="icon" onClick={() => handleSendReminder(sub)} title="Enviar Lembrete WhatsApp">
+                                  <MessageCircle className="h-4 w-4 text-emerald-500" />
+                                </Button>
+                                <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(sub)}>
+                                  <Edit2 className="h-4 w-4 text-blue-400" />
+                                </Button>
+                                <Button variant="ghost" size="icon" onClick={() => handleDelete(sub.id)}>
+                                  <Trash2 className="h-4 w-4 text-rose-400" />
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </motion.tr>
+                        );
+                      })}
+                    </AnimatePresence>
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );

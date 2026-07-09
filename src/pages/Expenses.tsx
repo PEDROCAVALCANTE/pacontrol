@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -134,8 +134,8 @@ export default function ExpensesPage() {
       />
 
       {/* Month Navigation */}
-      <div className="flex items-center justify-between glass-panel p-4 rounded-[1.5rem] shadow-lg">
-        <Button variant="outline" size="icon" onClick={() => setCurrentViewMonth(prev => subMonths(prev, 1))} className="bg-muted text-foreground hover:bg-muted/80">
+      <div className="flex items-center justify-between glass-panel p-4 rounded-[1.5rem] shadow-lg max-w-xs mx-auto sm:max-w-none sm:mx-0">
+        <Button variant="outline" size="icon" onClick={() => setCurrentViewMonth(prev => subMonths(prev, 1))} className="bg-muted text-foreground hover:bg-muted/80 shrink-0">
           <ChevronLeft className="w-5 h-5" />
         </Button>
         <div className="flex flex-col items-center">
@@ -144,7 +144,7 @@ export default function ExpensesPage() {
             {format(currentViewMonth, 'MMM yyyy', { locale: ptBR }).replace('.', '')}
           </span>
         </div>
-        <Button variant="outline" size="icon" onClick={() => setCurrentViewMonth(prev => addMonths(prev, 1))} className="bg-muted text-foreground hover:bg-muted/80">
+        <Button variant="outline" size="icon" onClick={() => setCurrentViewMonth(prev => addMonths(prev, 1))} className="bg-muted text-foreground hover:bg-muted/80 shrink-0">
           <ChevronRight className="w-5 h-5" />
         </Button>
       </div>
@@ -178,73 +178,116 @@ export default function ExpensesPage() {
       </div>
 
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
-      <div className="rounded-xl overflow-hidden" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
-      <Card className="border-0 shadow-none bg-transparent">
-        <CardHeader className="pb-0">
-           <CardTitle className="text-sm font-semibold text-foreground">Histórico</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Data</TableHead>
-                  <TableHead className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Descrição</TableHead>
-                  <TableHead className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Status</TableHead>
-                  <TableHead className="text-right text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Valor</TableHead>
-                  <TableHead className="text-right text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {monthExpenses.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={5} className="text-center h-24 text-muted-foreground">
-                      Nenhuma despesa em {format(currentViewMonth, 'MMMM yyyy', { locale: ptBR })}.
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  monthExpenses.map((expense, index) => (
-                    <motion.tr 
-                      key={expense.id}
-                      initial={{ opacity: 0, x: -10 }} 
-                      animate={{ opacity: 1, x: 0 }} 
-                      transition={{ delay: index * 0.05 }}
-                      className="glass-panel hover:shadow-[inset_0_1px_1px_rgba(255,255,255,0.08),0_12px_40px_-8px_rgba(0,0,0,0.5)] hover:-translate-y-[2px] transition-all duration-300 [&>td:first-child]:rounded-l-xl [&>td:last-child]:rounded-r-xl [&>th:first-child]:rounded-l-xl [&>th:last-child]:rounded-r-xl"
-                    >
-                      <TableCell className="whitespace-nowrap">{format(new Date(expense.date), 'dd/MM/yyyy')}</TableCell>
-                      <TableCell className="font-medium whitespace-nowrap">{expense.description}</TableCell>
-                      <TableCell className="whitespace-nowrap">
-                        <Badge 
-                          variant="outline" 
-                          className={`cursor-pointer ${expense.paid ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 'bg-amber-500/10 text-amber-500 border-amber-500/20'}`}
-                          onClick={() => handleTogglePaid(expense)}
-                        >
-                          {expense.paid ? (
-                            <span className="flex items-center gap-1 whitespace-nowrap"><CheckCircle2 className="h-3 w-3" /> Paga</span>
-                          ) : (
-                            <span className="flex items-center gap-1 whitespace-nowrap"><Clock className="h-3 w-3" /> Pendente</span>
-                          )}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right font-medium whitespace-nowrap">
-                        <span className={expense.paid ? 'text-rose-400' : 'text-muted-foreground'}>
-                          {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(expense.amount)}
-                        </span>
-                      </TableCell>
-                      <TableCell className="text-right whitespace-nowrap">
-                        <Button variant="ghost" size="icon" onClick={() => handleDelete(expense.id)}>
-                          <Trash2 className="h-4 w-4 text-muted-foreground hover:text-rose-400" />
-                        </Button>
-                      </TableCell>
-                    </motion.tr>
-                  ))
-                )}
-              </TableBody>
-            </Table>
+        <div className="rounded-xl overflow-hidden" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
+          <div className="px-4 pt-4 pb-2">
+            <p className="text-sm font-semibold text-foreground">Histórico</p>
           </div>
-        </CardContent>
-      </Card>
-      </div>
+
+          {/* Mobile cards */}
+          <div className="sm:hidden p-4 pt-2 space-y-3">
+            {monthExpenses.length === 0 ? (
+              <p className="text-center py-8 text-sm text-muted-foreground">
+                Nenhuma despesa em {format(currentViewMonth, 'MMMM yyyy', { locale: ptBR })}.
+              </p>
+            ) : monthExpenses.map((expense, index) => (
+              <motion.div
+                key={expense.id}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.05 }}
+                className="rounded-xl p-4"
+                style={{ background: 'var(--background)', border: '1px solid var(--border)' }}
+              >
+                <div className="flex items-start justify-between gap-3 mb-3">
+                  <div>
+                    <p className="font-semibold text-foreground text-[13px]">{expense.description}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">{format(new Date(expense.date), 'dd/MM/yyyy')}</p>
+                  </div>
+                  <p className={`font-bold text-sm tabular shrink-0 ${expense.paid ? 'text-rose-400' : 'text-foreground'}`}>
+                    {fmt(expense.amount)}
+                  </p>
+                </div>
+                <div className="flex items-center justify-between pt-3" style={{ borderTop: '1px solid var(--border)' }}>
+                  <Badge
+                    variant="outline"
+                    className={`cursor-pointer ${expense.paid ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 'bg-amber-500/10 text-amber-500 border-amber-500/20'}`}
+                    onClick={() => handleTogglePaid(expense)}
+                  >
+                    {expense.paid
+                      ? <span className="flex items-center gap-1"><CheckCircle2 className="h-3 w-3" /> Paga</span>
+                      : <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> Pendente</span>
+                    }
+                  </Badge>
+                  <Button variant="ghost" size="icon" onClick={() => handleDelete(expense.id)}>
+                    <Trash2 className="h-4 w-4 text-rose-400" />
+                  </Button>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* Desktop table */}
+          <div className="hidden sm:block">
+            <Card className="border-0 shadow-none bg-transparent">
+              <CardContent>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Data</TableHead>
+                        <TableHead className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Descrição</TableHead>
+                        <TableHead className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Status</TableHead>
+                        <TableHead className="text-right text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Valor</TableHead>
+                        <TableHead className="text-right text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Ações</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {monthExpenses.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={5} className="text-center h-24 text-muted-foreground">
+                            Nenhuma despesa em {format(currentViewMonth, 'MMMM yyyy', { locale: ptBR })}.
+                          </TableCell>
+                        </TableRow>
+                      ) : monthExpenses.map((expense, index) => (
+                        <motion.tr
+                          key={expense.id}
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: index * 0.05 }}
+                        >
+                          <TableCell className="whitespace-nowrap">{format(new Date(expense.date), 'dd/MM/yyyy')}</TableCell>
+                          <TableCell className="font-medium whitespace-nowrap">{expense.description}</TableCell>
+                          <TableCell className="whitespace-nowrap">
+                            <Badge
+                              variant="outline"
+                              className={`cursor-pointer ${expense.paid ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 'bg-amber-500/10 text-amber-500 border-amber-500/20'}`}
+                              onClick={() => handleTogglePaid(expense)}
+                            >
+                              {expense.paid
+                                ? <span className="flex items-center gap-1 whitespace-nowrap"><CheckCircle2 className="h-3 w-3" /> Paga</span>
+                                : <span className="flex items-center gap-1 whitespace-nowrap"><Clock className="h-3 w-3" /> Pendente</span>
+                              }
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-right font-medium whitespace-nowrap">
+                            <span className={expense.paid ? 'text-rose-400' : 'text-muted-foreground'}>
+                              {fmt(expense.amount)}
+                            </span>
+                          </TableCell>
+                          <TableCell className="text-right whitespace-nowrap">
+                            <Button variant="ghost" size="icon" onClick={() => handleDelete(expense.id)}>
+                              <Trash2 className="h-4 w-4 text-muted-foreground hover:text-rose-400" />
+                            </Button>
+                          </TableCell>
+                        </motion.tr>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
       </motion.div>
     </div>
   );

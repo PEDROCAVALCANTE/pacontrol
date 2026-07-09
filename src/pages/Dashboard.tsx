@@ -309,19 +309,19 @@ export default function DashboardPage() {
           initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.25 }}
-          className="flex items-center justify-between"
+          className="flex items-start justify-between gap-3"
         >
           <div>
             <div className="flex items-center gap-2 mb-1">
               <GreetIcon className="w-4 h-4 text-amber-400" />
               <span className="text-sm text-muted-foreground">{greet}, Pedro &amp; Angra</span>
             </div>
-            <h1 className="text-2xl font-semibold text-foreground tracking-tight">Visão Geral</h1>
+            <h1 className="text-xl sm:text-2xl font-semibold text-foreground tracking-tight">Visão Geral</h1>
             <p className="text-sm text-muted-foreground mt-0.5 capitalize">{monthLabel}</p>
           </div>
-          <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border text-xs text-muted-foreground">
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border text-xs text-muted-foreground shrink-0">
             <Users className="w-3.5 h-3.5" />
-            <span><b className="text-foreground">{activeSubs.length}</b> assinaturas ativas</span>
+            <span><b className="text-foreground">{activeSubs.length}</b> <span className="hidden sm:inline">assinaturas </span>ativas</span>
           </div>
         </motion.div>
 
@@ -398,7 +398,72 @@ export default function DashboardPage() {
             </span>
           </div>
 
-          <div className="rounded-xl overflow-hidden"
+          {/* Mobile cards */}
+          <div className="sm:hidden space-y-3">
+            {activeSubs.length === 0 && (
+              <p className="text-center py-8 text-sm text-muted-foreground">Nenhuma assinatura ativa cadastrada.</p>
+            )}
+            {activeSubs.map((sub, i) => {
+              const isPaidCurrent = isPaidCurrentMonth(sub);
+              const isPaidPrev    = !!(sub.payments?.[prevMonthKey]);
+              const cPhone        = getSubClientPhone(sub).replace(/\D/g, '');
+              const canSend       = !isPaidCurrent && isTodayAfter10 && !!cPhone;
+              return (
+                <motion.div
+                  key={sub.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.04 }}
+                  className="rounded-xl p-4"
+                  style={{ background: 'var(--card)', border: '1px solid var(--border)' }}
+                >
+                  <div className="flex items-start justify-between mb-3">
+                    <div>
+                      <p className="font-semibold text-foreground text-[13px]">{getSubClientName(sub)}</p>
+                      <p className="text-xs text-muted-foreground">Dia {sub.dueDay} · {fmt(sub.monthlyValue)}</p>
+                    </div>
+                    <AnimatePresence mode="wait">
+                      <motion.span
+                        key={isPaidCurrent ? 'paid' : 'pending'}
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.8 }}
+                        transition={{ duration: 0.15 }}
+                        className={isPaidCurrent ? 'pill-success' : 'pill-danger'}
+                      >
+                        {isPaidCurrent ? '● Pago' : '● Pendente'}
+                      </motion.span>
+                    </AnimatePresence>
+                  </div>
+                  <div className="flex items-center justify-between pt-3" style={{ borderTop: '1px solid var(--border)' }}>
+                    <span className="text-[11px] text-muted-foreground">
+                      {format(prevMonth, 'MMM', { locale: ptBR })}: <span className={isPaidPrev ? 'text-emerald-500 font-medium' : 'text-muted-foreground'}>{isPaidPrev ? 'Pago' : 'Pendente'}</span>
+                    </span>
+                    <div className="flex items-center gap-2">
+                      {canSend && <WhatsAppButton phone={cPhone} clientName={getSubClientName(sub)} dueDay={sub.dueDay} />}
+                      <button
+                        onClick={() => togglePayment(sub, today)}
+                        title={isPaidCurrent ? 'Desmarcar' : 'Marcar como pago'}
+                        className={`w-8 h-8 flex items-center justify-center rounded-full border transition-all ${
+                          isPaidCurrent
+                            ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-500 hover:bg-emerald-500/20'
+                            : 'bg-transparent border-border text-muted-foreground hover:border-emerald-500/40 hover:text-emerald-500'
+                        }`}
+                      >
+                        {isPaidCurrent
+                          ? <Check className="w-4 h-4" strokeWidth={2.5} />
+                          : <X     className="w-4 h-4" strokeWidth={2.5} />
+                        }
+                      </button>
+                    </div>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+
+          {/* Desktop table */}
+          <div className="hidden sm:block rounded-xl overflow-hidden"
                style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
             <div className="overflow-x-auto">
               <table className="w-full text-sm min-w-[600px]">
@@ -438,25 +503,18 @@ export default function DashboardPage() {
                         className="group transition-colors hover:bg-white/[0.02]"
                         style={{ borderBottom: i < activeSubs.length - 1 ? '1px solid var(--border)' : 'none' }}
                       >
-                        {/* Cliente */}
                         <td className="px-5 py-4">
                           <p className="font-medium text-foreground text-[13px]">{getSubClientName(sub)}</p>
                           <p className="text-xs text-muted-foreground mt-0.5">Dia {sub.dueDay}</p>
                         </td>
-
-                        {/* Valor */}
                         <td className="px-5 py-4">
                           <span className="tabular text-sm font-medium text-foreground">{fmt(sub.monthlyValue)}</span>
                         </td>
-
-                        {/* Mês anterior (read-only) */}
                         <td className="px-5 py-4 text-center">
                           <span className={isPaidPrev ? 'pill-success' : 'pill-muted'}>
                             {isPaidPrev ? '● Pago' : '● Pendente'}
                           </span>
                         </td>
-
-                        {/* Mês atual — toggle */}
                         <td className="px-5 py-4 text-center">
                           <div className="flex items-center justify-center gap-2">
                             <AnimatePresence mode="wait">
@@ -487,8 +545,6 @@ export default function DashboardPage() {
                             </button>
                           </div>
                         </td>
-
-                        {/* WhatsApp */}
                         <td className="px-5 py-4 text-center">
                           {canSend && (
                             <WhatsAppButton phone={cPhone} clientName={getSubClientName(sub)} dueDay={sub.dueDay} />
