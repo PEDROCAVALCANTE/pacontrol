@@ -1,14 +1,10 @@
-function stripBom(s) {
-  return s?.replace(/^﻿/, '').trim();
-}
+import { evolutionConfig, requireUser, forward } from './_lib.js';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
+  if (!(await requireUser(req, res))) return;
 
-  const url      = stripBom(process.env.EVOLUTION_API_URL)?.replace(/\/$/, '');
-  const key      = stripBom(process.env.EVOLUTION_API_KEY);
-  const instance = stripBom(process.env.EVOLUTION_INSTANCE);
-
+  const { url, key, instance } = evolutionConfig();
   if (!url || !key || !instance) {
     return res.status(500).json({ error: 'Evolution API nao configurada' });
   }
@@ -18,7 +14,7 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'phone e message sao obrigatorios' });
   }
 
-  const digits = phone.replace(/\D/g, '');
+  const digits = String(phone).replace(/\D/g, '');
   const number = digits.startsWith('55') ? digits : `55${digits}`;
 
   try {
@@ -27,8 +23,7 @@ export default async function handler(req, res) {
       headers: { 'Content-Type': 'application/json', apikey: key },
       body: JSON.stringify({ number, text: message }),
     });
-    const data = await r.json();
-    res.status(r.status).json(data);
+    await forward(res, r);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

@@ -14,7 +14,8 @@ import { Client, Subscription } from '@/lib/types';
 import { Search, Plus, Edit2, CheckCircle2, MessageCircle, Trash2, Send } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'motion/react';
-import { setDate, isBefore, startOfDay, format } from 'date-fns';
+import { isBefore, startOfDay, format } from 'date-fns';
+import { dueDateIn, sendWhatsApp, thankYouMessage } from '@/lib/whatsapp';
 import { PageHeader } from '@/components/PageHeader';
 
 export default function SubscriptionsPage() {
@@ -24,6 +25,7 @@ export default function SubscriptionsPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingSub, setEditingSub] = useState<Subscription | null>(null);
   const [sendingId, setSendingId] = useState<string | null>(null);
+  const [payingId, setPayingId] = useState<string | null>(null);
 
   // Merged form fields
   const [clientName, setClientName] = useState('');
@@ -123,50 +125,39 @@ export default function SubscriptionsPage() {
       if (manual) toast.error('Assinatura sem telefone cadastrado.');
       return;
     }
-    if (manual) setSendingId(sub.id);
+    setSendingId(sub.id);
     const name = getSubClientName(sub);
-    const value = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(sub.monthlyValue));
-    const message =
-      `🤖 _Mensagem automática do sistema de gestão PA Control_\n` +
-      `━━━━━━━━━━━━━━━━━━━━━━\n\n` +
-      `Olá, *${name}*! 👋😊\n\n` +
-      `✅ *Pagamento confirmado!*\n\n` +
-      `💵 Valor: *${value}*\n` +
-      `📅 Mês de competência: *${new Date().toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}*\n\n` +
-      `Obrigado por manter sua assinatura em dia! 🙏\n\n` +
-      `Qualquer dúvida é só chamar! 💬`;
     try {
-      const r = await fetch('/api/whatsapp-send', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone, message }),
-      });
-      if (manual) {
-        if (r.ok) toast.success(`Mensagem enviada para ${name}! ✅`);
-        else toast.error('Erro ao enviar mensagem. Verifique o WhatsApp.');
-      }
-    } catch {
-      if (manual) toast.error('Erro ao enviar mensagem.');
+      await sendWhatsApp(phone, thankYouMessage(name, sub.monthlyValue, today));
+      toast.success(`Obrigado enviado para ${name} ✅`);
+    } catch (err) {
+      toast.error(`Obrigado não enviado para ${name}: ${err instanceof Error ? err.message : 'erro'}`);
     } finally {
-      if (manual) setSendingId(null);
+      setSendingId(null);
     }
   };
 
   const markAsPaid = async (sub: Subscription) => {
-    const isPaid = sub.payments ? sub.payments[currentMonthKey] === true : sub.paid === true;
-    const newPayments = { ...(sub.payments || {}) };
+    if (payingId) return; // evita clique duplo (e mensagem duplicada)
+    setPayingId(sub.id);
+    try {
+      const isPaid = sub.payments ? sub.payments[currentMonthKey] === true : sub.paid === true;
+      const newPayments = { ...(sub.payments || {}), [currentMonthKey]: !isPaid };
 
-    if (isPaid) {
-      newPayments[currentMonthKey] = false;
-      await updateSubscription(sub.id, { payments: newPayments });
-      toast.success('Marcado como pendente.');
-    } else {
-      newPayments[currentMonthKey] = true;
-      await updateSubscription(sub.id, { payments: newPayments, lastPaymentDate: new Date().getTime() });
-      toast.success('Marcado como pago!');
-      sendThankYou(sub);
+      if (isPaid) {
+        await updateSubscription(sub.id, { payments: newPayments });
+        toast.success('Marcado como pendente.');
+      } else {
+        await updateSubscription(sub.id, { payments: newPayments, lastPaymentDate: Date.now() });
+        toast.success('Marcado como pago!');
+        sendThankYou(sub);
+      }
+      await loadData();
+    } catch {
+      toast.error('Erro ao atualizar pagamento.');
+    } finally {
+      setPayingId(null);
     }
-    loadData();
   };
 
   const handleDelete = async (id: string) => {
@@ -207,10 +198,8 @@ export default function SubscriptionsPage() {
         subtitle="Controle de clientes e pagamentos recorrentes."
         action={
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button size="sm" onClick={() => handleOpenDialog()}>
-              <Plus className="mr-1.5 h-4 w-4" /> Nova Assinatura
-            </Button>
+          <DialogTrigger render={<Button size="sm" onClick={() => handleOpenDialog()} />}>
+            <Plus className="mr-1.5 h-4 w-4" /> Nova Assinatura
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
@@ -289,7 +278,7 @@ export default function SubscriptionsPage() {
                 Nenhuma assinatura encontrada.
               </motion.p>
             ) : filteredSubs.map((sub) => {
-              const dueDate = setDate(today, sub.dueDay);
+              const dueDate = dueDateIn(today, sub.dueDay);
               const isPaid  = sub.payments ? sub.payments[currentMonthKey] === true : sub.paid === true;
               const isLate  = sub.status === 'active' && !isPaid && isBefore(dueDate, today);
               const cPhone  = getSubClientPhone(sub);
@@ -331,6 +320,7 @@ export default function SubscriptionsPage() {
                         size="sm"
                         className={`flex-1 ${isPaid ? 'text-muted-foreground' : 'bg-emerald-600 hover:bg-emerald-700 text-white'}`}
                         onClick={() => markAsPaid(sub)}
+                        disabled={payingId === sub.id}
                       >
                         <CheckCircle2 className="h-4 w-4 mr-1.5" />
                         {isPaid ? 'Desfazer' : 'Pagar'}
@@ -389,7 +379,7 @@ export default function SubscriptionsPage() {
                           </TableCell>
                         </motion.tr>
                       ) : filteredSubs.map((sub) => {
-                        const dueDate = setDate(today, sub.dueDay);
+                        const dueDate = dueDateIn(today, sub.dueDay);
                         const isPaid  = sub.payments ? sub.payments[currentMonthKey] === true : sub.paid === true;
                         const isLate  = sub.status === 'active' && !isPaid && isBefore(dueDate, today);
                         const cPhone  = getSubClientPhone(sub);
@@ -426,6 +416,7 @@ export default function SubscriptionsPage() {
                                     size="sm"
                                     className={isPaid ? 'text-muted-foreground' : 'bg-emerald-600 hover:bg-emerald-700 text-white'}
                                     onClick={() => markAsPaid(sub)}
+                        disabled={payingId === sub.id}
                                   >
                                     <CheckCircle2 className="h-4 w-4 mr-1.5" />
                                     {isPaid ? 'Desfazer' : 'Pagar'}

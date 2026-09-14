@@ -1,13 +1,10 @@
-function stripBom(s) { return s?.replace(/^﻿/, '').trim(); }
-
+import { evolutionConfig, requireUser, forward } from './_lib.js';
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') return res.status(405).end();
+  if (!(await requireUser(req, res))) return;
 
-  const url      = stripBom(process.env.EVOLUTION_API_URL)?.replace(/\/$/, '');
-  const key      = stripBom(process.env.EVOLUTION_API_KEY);
-  const instance = stripBom(process.env.EVOLUTION_INSTANCE);
-
+  const { url, key, instance } = evolutionConfig();
   if (!url || !key || !instance) {
     return res.status(500).json({ error: 'Evolution API nao configurada' });
   }
@@ -16,8 +13,7 @@ export default async function handler(req, res) {
     const r = await fetch(`${url}/instance/connectionState/${instance}`, {
       headers: { apikey: key },
     });
-    const data = await r.json();
-    res.status(r.status).json(data);
+    await forward(res, r);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

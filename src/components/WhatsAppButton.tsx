@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { MessageCircle, Loader2, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { sendWhatsApp, buildWaLink, isEvolutionConfigured, reminderMessage } from '@/lib/whatsapp';
+import { sendWhatsApp, buildWaLink, reminderMessage } from '@/lib/whatsapp';
 
 interface Props {
   phone: string;
@@ -15,11 +15,6 @@ export function WhatsAppButton({ phone, clientName, dueDay }: Props) {
   const message = reminderMessage(clientName, dueDay);
 
   const handleClick = async () => {
-    if (!isEvolutionConfigured()) {
-      window.open(buildWaLink(phone, message), '_blank');
-      return;
-    }
-
     setStatus('sending');
     try {
       await sendWhatsApp(phone, message);

@@ -14,6 +14,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { motion, AnimatePresence } from 'motion/react';
 import { WhatsAppButton } from '@/components/WhatsAppButton';
 import { DashboardSkeleton } from '@/components/Skeleton';
+import { sendWhatsApp, thankYouMessage } from '@/lib/whatsapp';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -181,7 +182,7 @@ function RevenueProgress({ received, expected, prevReceived, prevExpected, prevL
       </div>
 
       {/* Current month bar */}
-      <div className="h-2 w-full rounded-full overflow-hidden mb-2" style={{ background: 'rgba(255,255,255,0.06)' }}>
+      <div className="h-2 w-full rounded-full overflow-hidden mb-2" style={{ background: 'var(--muted)' }}>
         <motion.div
           key={pct}
           initial={{ width: 0 }}
@@ -200,7 +201,7 @@ function RevenueProgress({ received, expected, prevReceived, prevExpected, prevL
 
       {/* Previous month bar (ghost) */}
       {prevPct > 0 && (
-        <div className="h-1 w-full rounded-full overflow-hidden mb-3" style={{ background: 'rgba(255,255,255,0.04)' }}>
+        <div className="h-1 w-full rounded-full overflow-hidden mb-3" style={{ background: 'var(--muted)' }}>
           <div className="h-full rounded-full opacity-40"
                style={{ width: `${prevPct}%`, background: '#8896A7' }} />
         </div>
@@ -225,6 +226,7 @@ export default function DashboardPage() {
   const [clients, setClients]   = useState<Client[]>([]);
   const [subs, setSubs]         = useState<Subscription[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [payingId, setPayingId] = useState<string | null>(null);
   const { text: greet, Icon: GreetIcon } = useGreeting();
 
   const loadData = async () => {
@@ -290,14 +292,30 @@ export default function DashboardPage() {
 
   // ── Toggle payment ────────────────────────────────────────
   const togglePayment = async (sub: Subscription, monthDate: Date) => {
-    const mKey   = format(monthDate, 'yyyy-MM');
-    const isPaid = sub.payments
-      ? sub.payments[mKey] === true
-      : (mKey === currentMonthKey ? sub.paid === true : false);
-    const newPay = { ...(sub.payments ?? {}), [mKey]: !isPaid };
-    await updateSubscription(sub.id, { payments: newPay });
-    toast.success(!isPaid ? 'Marcado como pago ✓' : 'Pagamento removido');
-    loadData();
+    if (payingId) return; // evita clique duplo (e mensagem duplicada)
+    setPayingId(sub.id);
+    try {
+      const mKey   = format(monthDate, 'yyyy-MM');
+      const isPaid = sub.payments
+        ? sub.payments[mKey] === true
+        : (mKey === currentMonthKey ? sub.paid === true : false);
+      const newPay = { ...(sub.payments ?? {}), [mKey]: !isPaid };
+      await updateSubscription(sub.id, isPaid ? { payments: newPay } : { payments: newPay, lastPaymentDate: Date.now() });
+      toast.success(!isPaid ? 'Marcado como pago ✓' : 'Pagamento removido');
+
+      const phone = getSubClientPhone(sub);
+      if (!isPaid && phone) {
+        const name = getSubClientName(sub);
+        sendWhatsApp(phone, thankYouMessage(name, sub.monthlyValue, monthDate))
+          .then(() => toast.success(`Obrigado enviado para ${name} ✅`))
+          .catch(err => toast.error(`Obrigado não enviado para ${name}: ${err instanceof Error ? err.message : 'erro'}`));
+      }
+      await loadData();
+    } catch {
+      toast.error('Erro ao atualizar pagamento.');
+    } finally {
+      setPayingId(null);
+    }
   };
 
   return (
@@ -443,6 +461,7 @@ export default function DashboardPage() {
                       {canSend && <WhatsAppButton phone={cPhone} clientName={getSubClientName(sub)} dueDay={sub.dueDay} />}
                       <button
                         onClick={() => togglePayment(sub, today)}
+                        disabled={payingId === sub.id}
                         title={isPaidCurrent ? 'Desmarcar' : 'Marcar como pago'}
                         className={`w-8 h-8 flex items-center justify-center rounded-full border transition-all ${
                           isPaidCurrent
@@ -531,6 +550,7 @@ export default function DashboardPage() {
                             </AnimatePresence>
                             <button
                               onClick={() => togglePayment(sub, today)}
+                        disabled={payingId === sub.id}
                               title={isPaidCurrent ? 'Desmarcar' : 'Marcar como pago'}
                               className={`w-7 h-7 flex items-center justify-center rounded-full border transition-all ${
                                 isPaidCurrent

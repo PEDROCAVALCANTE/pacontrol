@@ -5,8 +5,19 @@ import { motion, AnimatePresence } from 'motion/react';
 import { PageHeader } from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { getSubscriptions } from '@/lib/data-store';
+import { format } from 'date-fns';
+import { getClients, getSubscriptions } from '@/lib/data-store';
 import { Subscription } from '@/lib/types';
+import { apiFetch, dueDateIn, sendWhatsApp, subClientName, subClientPhone, thankYouMessage } from '@/lib/whatsapp';
+
+// Assinatura com nome/telefone resolvidos (inclui cadastros legados por clientId)
+type ClientSub = Subscription & { clientName: string; clientPhone: string };
+
+function daysLate(dueDay: number): number {
+  const now = new Date();
+  const due = dueDateIn(now, dueDay);
+  return Math.max(0, now.getDate() - due.getDate());
+}
 
 type ConnectionState = 'open' | 'connecting' | 'close' | 'unknown';
 
@@ -22,7 +33,7 @@ interface QrResponse {
 }
 
 interface SendModal {
-  sub: Subscription;
+  sub: ClientSub;
   message: string;
 }
 
@@ -46,14 +57,14 @@ export default function WhatsAppPage() {
   const [checkingStatus, setCheckingStatus] = useState(true);
   const [qrBase64, setQrBase64] = useState<string | null>(null);
   const [loadingQr, setLoadingQr] = useState(false);
-  const [subs, setSubs] = useState<Subscription[]>([]);
+  const [subs, setSubs] = useState<ClientSub[]>([]);
   const [sendModal, setSendModal] = useState<SendModal | null>(null);
   const [sending, setSending] = useState(false);
 
   const checkStatus = useCallback(async () => {
     setCheckingStatus(true);
     try {
-      const res = await fetch('/api/whatsapp-status');
+      const res = await apiFetch('/api/whatsapp-status');
       const data: StatusResponse = await res.json();
       const state = (data?.instance?.state ?? data?.state ?? 'close').toLowerCase();
       setConnState(state as ConnectionState);
@@ -69,7 +80,7 @@ export default function WhatsAppPage() {
     setLoadingQr(true);
     setQrBase64(null);
     try {
-      const res = await fetch('/api/whatsapp-qr');
+      const res = await apiFetch('/api/whatsapp-qr');
       const data: QrResponse = await res.json();
       if (data?.base64) {
         setQrBase64(data.base64.startsWith('data:') ? data.base64 : `data:image/png;base64,${data.base64}`);
@@ -85,7 +96,15 @@ export default function WhatsAppPage() {
 
   useEffect(() => {
     checkStatus();
-    getSubscriptions().then(s => setSubs(s.filter(x => x.status === 'active' && x.clientPhone)));
+    Promise.all([getClients(), getSubscriptions()]).then(([clients, all]) => {
+      setSubs(
+        all
+          .filter(s => s.status === 'active')
+          .map(s => ({ ...s, clientName: subClientName(s, clients), clientPhone: subClientPhone(s, clients) }))
+          .filter(s => s.clientPhone)
+          .sort((a, b) => a.dueDay - b.dueDay),
+      );
+    });
   }, [checkStatus]);
 
   // Poll status every 5s while connecting
@@ -96,16 +115,15 @@ export default function WhatsAppPage() {
     }
   }, [connState, checkStatus]);
 
-  const openSendModal = (sub: Subscription) => {
-    const monthKey = new Date().toISOString().slice(0, 7);
+  const openSendModal = (sub: ClientSub) => {
+    const monthKey = format(new Date(), 'yyyy-MM');
     const isPaid = sub.payments?.[monthKey] === true;
     const dueDay = sub.dueDay;
-    const today = new Date().getDate();
-    const diff = today - dueDay;
+    const diff = daysLate(dueDay);
 
     let defaultMsg = '';
     if (isPaid) {
-      defaultMsg = `Olá, *${sub.clientName}*! 👋\n\nObrigado pelo pagamento da sua mensalidade de *${formatCurrency(Number(sub.monthlyValue))}*! ✅\n\nQualquer dúvida é só chamar! 💬`;
+      defaultMsg = thankYouMessage(sub.clientName, sub.monthlyValue, new Date());
     } else if (diff > 0) {
       defaultMsg = `🤖 _Mensagem automática do sistema de gestão PA Control_\n━━━━━━━━━━━━━━━━━━━━━━\n\nOlá, *${sub.clientName}*! 👋\n\n🚨 *Mensalidade em atraso!*\n\n📅 Venceu no *dia ${dueDay}* (${diff} dia${diff > 1 ? 's' : ''} em atraso)\n💵 Valor: *${formatCurrency(Number(sub.monthlyValue))}*\n\n━━━━━━━━━━━━━━━━━━━━━━\n💳 *Chave PIX:* 62991803975 (Nubank)\n━━━━━━━━━━━━━━━━━━━━━━\n\n⚠️ Regularize para evitar interrupção do serviço.\n\nQualquer dúvida é só chamar! 💬🙏`;
     } else {
@@ -119,13 +137,7 @@ export default function WhatsAppPage() {
     if (!sendModal) return;
     setSending(true);
     try {
-      const res = await fetch('/api/whatsapp-send', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: sendModal.sub.clientPhone, message: sendModal.message }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data?.error ?? 'Erro ao enviar');
+      await sendWhatsApp(sendModal.sub.clientPhone, sendModal.message);
       toast.success(`Mensagem enviada para ${sendModal.sub.clientName}!`);
       setSendModal(null);
     } catch (err: unknown) {
@@ -203,10 +215,9 @@ export default function WhatsAppPage() {
         ) : (
           <div className="grid gap-3">
             {subs.map((sub, i) => {
-              const monthKey = new Date().toISOString().slice(0, 7);
+              const monthKey = format(new Date(), 'yyyy-MM');
               const isPaid = sub.payments?.[monthKey] === true;
-              const today = new Date().getDate();
-              const diff = today - sub.dueDay;
+              const diff = daysLate(sub.dueDay);
               let badge = { label: 'Pendente', color: 'text-amber-400 bg-amber-400/10' };
               if (isPaid) badge = { label: 'Pago', color: 'text-emerald-400 bg-emerald-400/10' };
               else if (diff > 0) badge = { label: `${diff}d atraso`, color: 'text-red-400 bg-red-400/10' };

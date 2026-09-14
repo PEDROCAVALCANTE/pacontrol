@@ -6,7 +6,8 @@ import { getClients, getSubscriptions, updateSubscription } from '@/lib/data-sto
 import { Client, Subscription } from '@/lib/types';
 import { Calendar as CalendarIcon, CheckCircle2, ChevronLeft, ChevronRight, Clock, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
-import { format, addMonths, subMonths, startOfMonth, setDate, isBefore, isToday, isSameDay, startOfDay } from 'date-fns';
+import { format, addMonths, subMonths, startOfMonth, isBefore, isSameDay, startOfDay } from 'date-fns';
+import { dueDateIn, sendWhatsApp, subClientName, subClientPhone, thankYouMessage } from '@/lib/whatsapp';
 import { ptBR } from 'date-fns/locale';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -19,6 +20,7 @@ export default function AgendaPage() {
   const [clients, setClients] = useState<Client[]>([]);
   const [subs, setSubs] = useState<Subscription[]>([]);
   const [currentViewMonth, setCurrentViewMonth] = useState(startOfMonth(new Date()));
+  const [payingId, setPayingId] = useState<string | null>(null);
 
   const loadData = async () => {
     const [c, s] = await Promise.all([getClients(), getSubscriptions()]);
@@ -71,40 +73,34 @@ export default function AgendaPage() {
   const monthKey = format(currentViewMonth, 'yyyy-MM');
   const today = new Date();
 
-  const sendThankYou = async (sub: Subscription) => {
-    const phone = sub.clientPhone;
+  const sendThankYou = async (sub: Subscription, month: Date) => {
+    const phone = subClientPhone(sub, clients);
     if (!phone) return;
-    const name = sub.clientName || 'Cliente';
-    const value = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(sub.monthlyValue));
-    const message =
-      `🤖 _Mensagem automática do sistema de gestão PA Control_\n` +
-      `━━━━━━━━━━━━━━━━━━━━━━\n\n` +
-      `Olá, *${name}*! 👋😊\n\n` +
-      `✅ *Pagamento confirmado!*\n\n` +
-      `💵 Valor: *${value}*\n` +
-      `📅 Mês de competência: *${format(currentViewMonth, 'MMMM yyyy', { locale: ptBR })}*\n\n` +
-      `Obrigado por manter sua assinatura em dia! 🙏\n\n` +
-      `Qualquer dúvida é só chamar! 💬`;
+    const name = subClientName(sub, clients);
     try {
-      await fetch('/api/whatsapp-send', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone, message }),
-      });
-    } catch {
-      // falha silenciosa
+      await sendWhatsApp(phone, thankYouMessage(name, sub.monthlyValue, month));
+      toast.success(`Obrigado enviado para ${name} ✅`);
+    } catch (err) {
+      toast.error(`Obrigado não enviado para ${name}: ${err instanceof Error ? err.message : 'erro'}`);
     }
   };
 
   const togglePayment = async (sub: Subscription) => {
-    const isPaid = sub.payments ? sub.payments[monthKey] === true : (monthKey === format(today, 'yyyy-MM') ? sub.paid === true : false);
-    const newPayments = { ...(sub.payments || {}) };
-    newPayments[monthKey] = !isPaid;
+    if (payingId) return; // evita clique duplo (e mensagem duplicada)
+    setPayingId(sub.id);
+    try {
+      const isPaid = sub.payments ? sub.payments[monthKey] === true : (monthKey === format(today, 'yyyy-MM') ? sub.paid === true : false);
+      const newPayments = { ...(sub.payments || {}), [monthKey]: !isPaid };
 
-    await updateSubscription(sub.id, { payments: newPayments });
-    toast.success(!isPaid ? 'Pagamento confirmado!' : 'Pagamento desfeito');
-    if (!isPaid) sendThankYou(sub);
-    loadData();
+      await updateSubscription(sub.id, isPaid ? { payments: newPayments } : { payments: newPayments, lastPaymentDate: Date.now() });
+      toast.success(!isPaid ? 'Pagamento confirmado!' : 'Pagamento desfeito');
+      if (!isPaid) sendThankYou(sub, currentViewMonth);
+      await loadData();
+    } catch {
+      toast.error('Erro ao atualizar pagamento.');
+    } finally {
+      setPayingId(null);
+    }
   };
 
   if (loading) return <TableSkeleton rows={5} />;
@@ -114,7 +110,7 @@ export default function AgendaPage() {
   
   // Create an array of active subscriptions mapped to their payment state for the view month
   const scheduledItems = activeSubs.map(sub => {
-    const dueDate = setDate(currentViewMonth, sub.dueDay);
+    const dueDate = dueDateIn(currentViewMonth, sub.dueDay);
     const isPaid = sub.payments ? sub.payments[monthKey] === true : (monthKey === format(today, 'yyyy-MM') ? sub.paid === true : false);
     
     // Determine status
@@ -243,6 +239,7 @@ export default function AgendaPage() {
                 </span>
                 <Button
                   onClick={() => togglePayment(item)}
+                  disabled={payingId === item.id}
                   size="sm"
                   className={`rounded-xl px-4 sm:px-6 transition-all ${
                     item.isPaid
