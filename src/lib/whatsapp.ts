@@ -4,7 +4,7 @@ import { auth } from './firebase';
 import { Client, Subscription } from './types';
 
 const fmtBRL = (n: number) =>
-  new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(n);
+  new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(n));
 
 /** Chama as funções /api/* enviando o token do Firebase (exigido pelo servidor). */
 export async function apiFetch(path: string, init: RequestInit = {}): Promise<Response> {
@@ -53,19 +53,71 @@ export function dueDateIn(month: Date, dueDay: number): Date {
   return setDate(month, Math.min(dueDay, getDaysInMonth(month)));
 }
 
-export function thankYouMessage(name: string, value: number, month: Date): string {
-  return (
-    `🤖 _Mensagem automática do sistema de gestão PA Control_\n` +
-    `━━━━━━━━━━━━━━━━━━━━━━\n\n` +
-    `Olá, *${name}*! 👋😊\n\n` +
-    `✅ *Pagamento confirmado!*\n\n` +
-    `💵 Valor: *${fmtBRL(Number(value))}*\n` +
-    `📅 Mês de competência: *${format(month, "MMMM 'de' yyyy", { locale: ptBR })}*\n\n` +
-    `Obrigado por manter sua assinatura em dia! 🙏\n\n` +
-    `Qualquer dúvida é só chamar! 💬`
-  );
+/** Dias de atraso no mês atual: negativo = faltam N dias, 0 = vence hoje. */
+export function daysLateFor(dueDay: number, now = new Date()): number {
+  return now.getDate() - dueDateIn(now, dueDay).getDate();
 }
 
-export function reminderMessage(clientName: string, dueDay: number): string {
-  return `Olá, ${clientName}! 👋\n\nSua mensalidade deste mês (vencimento dia ${dueDay}) está pendente. ⚠️\n\nPara manter seu acesso ativo, não esqueça de realizar o pagamento. 💳\n\nQualquer dúvida, só chamar! 🤝`;
+// ── Mensagens ─────────────────────────────────────────────────────────────────
+// Manter os textos iguais aos de scripts/send-reminders.js (envio automático).
+
+const PIX    = `PIX (Nubank):\n62991803975`;
+const FOOTER = `\n\n_PA Control · mensagem automática_`;
+
+const firstName = (name: string) => name.trim().split(/\s+/)[0] || name;
+
+/**
+ * Lembrete ou cobrança conforme o momento:
+ * antes do vencimento, no dia, 1-2 dias, 3-6 dias ou 7+ dias de atraso.
+ */
+export function chargeMessage(name: string, value: number, dueDay: number, daysLate: number, auto = false): string {
+  const n = firstName(name);
+  const v = fmtBRL(value);
+  let body: string;
+
+  if (daysLate < 0) {
+    body =
+      `Oi, ${n}! Tudo bem? 😊\n\n` +
+      `Passando pra lembrar que sua mensalidade de *${v}* vence *dia ${dueDay}*.\n\n` +
+      `${PIX}\n\n` +
+      `Se já pagou, pode desconsiderar. Obrigado! 🙏`;
+  } else if (daysLate === 0) {
+    body =
+      `Oi, ${n}! 😊\n\n` +
+      `Sua mensalidade de *${v}* vence *hoje*.\n\n` +
+      `${PIX}\n\n` +
+      `Se já pagou, é só desconsiderar. Obrigado! 🙏`;
+  } else if (daysLate < 3) {
+    body =
+      `Oi, ${n}, tudo bem?\n\n` +
+      `Ainda não identificamos o pagamento da mensalidade de *${v}*, que venceu *${daysLate === 1 ? `ontem (dia ${dueDay})` : `dia ${dueDay}`}*.\n\n` +
+      `Pode ter sido só um esquecimento, sem problema! 😊\n\n` +
+      `${PIX}\n\n` +
+      `Se já pagou, me avisa que eu confiro.`;
+  } else if (daysLate < 7) {
+    body =
+      `Oi, ${n}!\n\n` +
+      `Sua mensalidade de *${v}* está em aberto há *${daysLate} dias* (venceu dia ${dueDay}).\n\n` +
+      `Consegue regularizar hoje?\n\n` +
+      `${PIX}\n\n` +
+      `Se estiver com alguma dificuldade, me chama que a gente conversa. 🤝`;
+  } else {
+    body =
+      `Oi, ${n}.\n\n` +
+      `A mensalidade de *${v}* está em atraso há *${daysLate} dias* (venceu dia ${dueDay}).\n\n` +
+      `Precisamos do pagamento para manter o serviço ativo.\n\n` +
+      `${PIX}\n\n` +
+      `Se já pagou ou quer combinar outra data, é só responder esta mensagem. 🙏`;
+  }
+
+  return auto ? body + FOOTER : body;
+}
+
+export function thankYouMessage(name: string, value: number, month: Date): string {
+  return (
+    `Oi, ${firstName(name)}! 😊\n\n` +
+    `Recebemos seu pagamento de *${fmtBRL(value)}* referente a *${format(month, "MMMM 'de' yyyy", { locale: ptBR })}*. ✅\n\n` +
+    `Obrigado por manter tudo em dia! Qualquer coisa, é só chamar. 🙏` +
+    FOOTER
+  );
 }

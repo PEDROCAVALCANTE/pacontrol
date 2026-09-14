@@ -458,7 +458,7 @@ export default function DashboardPage() {
                       {format(prevMonth, 'MMM', { locale: ptBR })}: <span className={isPaidPrev ? 'text-emerald-500 font-medium' : 'text-muted-foreground'}>{isPaidPrev ? 'Pago' : 'Pendente'}</span>
                     </span>
                     <div className="flex items-center gap-2">
-                      {canSend && <WhatsAppButton phone={cPhone} clientName={getSubClientName(sub)} dueDay={sub.dueDay} />}
+                      {canSend && <WhatsAppButton phone={cPhone} clientName={getSubClientName(sub)} dueDay={sub.dueDay} value={sub.monthlyValue} />}
                       <button
                         onClick={() => togglePayment(sub, today)}
                         disabled={payingId === sub.id}
@@ -567,7 +567,7 @@ export default function DashboardPage() {
                         </td>
                         <td className="px-5 py-4 text-center">
                           {canSend && (
-                            <WhatsAppButton phone={cPhone} clientName={getSubClientName(sub)} dueDay={sub.dueDay} />
+                            <WhatsAppButton phone={cPhone} clientName={getSubClientName(sub)} dueDay={sub.dueDay} value={sub.monthlyValue} />
                           )}
                         </td>
                       </motion.tr>

@@ -1,218 +1,183 @@
 const { initializeApp, cert } = require('firebase-admin/app');
 const { getFirestore, FieldValue } = require('firebase-admin/firestore');
 
-// ── Init Firebase Admin ───────────────────────────────────────────────────────
+// ── Config ────────────────────────────────────────────────────────────────────
+const clean = s => (s ?? '').replace(/^﻿/, '').trim();
+
+const EVOLUTION_URL      = clean(process.env.EVOLUTION_API_URL).replace(/\/$/, '');
+const EVOLUTION_KEY      = clean(process.env.EVOLUTION_API_KEY);
+const EVOLUTION_INSTANCE = clean(process.env.EVOLUTION_INSTANCE);
+const DRY_RUN            = process.env.DRY_RUN === 'true';
+
 const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
 initializeApp({ credential: cert(serviceAccount) });
 const db = getFirestore();
 
-// ── Config ────────────────────────────────────────────────────────────────────
-const EVOLUTION_URL      = process.env.EVOLUTION_API_URL?.replace(/\/$/, '');
-const EVOLUTION_KEY      = process.env.EVOLUTION_API_KEY;
-const EVOLUTION_INSTANCE = process.env.EVOLUTION_INSTANCE;
-
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function formatPhone(phone) {
-  const clean = phone.replace(/\D/g, '');
-  return clean.startsWith('55') ? clean : `55${clean}`;
+  const digits = phone.replace(/\D/g, '');
+  return digits.startsWith('55') ? digits : `55${digits}`;
+}
+
+function maskPhone(phone) {
+  const digits = formatPhone(phone);
+  return `${digits.slice(0, 4)}*****${digits.slice(-2)}`;
 }
 
 function formatCurrency(value) {
   return Number(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
-function todayBRT() {
-  const now = new Date();
-  const brt = new Date(now.getTime() - 3 * 60 * 60 * 1000);
-  return brt.toISOString().slice(0, 10);
+/** Data de hoje no fuso de São Paulo: { year, month (1-12), day } */
+function todaySaoPaulo() {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit', day: '2-digit',
+  }).formatToParts(new Date());
+  const get = type => Number(parts.find(p => p.type === type).value);
+  return { year: get('year'), month: get('month'), day: get('day') };
 }
 
-// ── Mensagens por tipo ────────────────────────────────────────────────────────
+// ── Mensagens ─────────────────────────────────────────────────────────────────
+// Manter os textos iguais aos de src/lib/whatsapp.ts (chargeMessage).
 
-function msgAviso(name, dueDay, value) {
-  return (
-    `🤖 _Mensagem automática do sistema de gestão PA Control_\n` +
-    `━━━━━━━━━━━━━━━━━━━━━━\n\n` +
-    `Olá, *${name}*! 👋😊\n\n` +
-    `📢 *Aviso de vencimento próximo!*\n\n` +
-    `📅 Sua mensalidade vence no *dia ${dueDay}* deste mês.\n\n` +
-    `💵 Valor: *${formatCurrency(value)}*\n\n` +
-    `━━━━━━━━━━━━━━━━━━━━━━\n` +
-    `💳 *Chave PIX para pagamento:*\n` +
-    `🔑 *62991803975*\n` +
-    `🏦 Nubank\n` +
-    `━━━━━━━━━━━━━━━━━━━━━━\n\n` +
-    `✅ Qualquer dúvida é só chamar! 💬🙏`
-  );
+const PIX    = `PIX (Nubank):\n62991803975`;
+const FOOTER = `\n\n_PA Control · mensagem automática_`;
+
+const firstName = name => name.trim().split(/\s+/)[0] || name;
+
+function chargeMessage(name, value, dueDay, daysLate) {
+  const n = firstName(name);
+  const v = formatCurrency(value);
+  let body;
+
+  if (daysLate < 0) {
+    body =
+      `Oi, ${n}! Tudo bem? 😊\n\n` +
+      `Passando pra lembrar que sua mensalidade de *${v}* vence *dia ${dueDay}*.\n\n` +
+      `${PIX}\n\n` +
+      `Se já pagou, pode desconsiderar. Obrigado! 🙏`;
+  } else if (daysLate === 0) {
+    body =
+      `Oi, ${n}! 😊\n\n` +
+      `Sua mensalidade de *${v}* vence *hoje*.\n\n` +
+      `${PIX}\n\n` +
+      `Se já pagou, é só desconsiderar. Obrigado! 🙏`;
+  } else if (daysLate < 3) {
+    body =
+      `Oi, ${n}, tudo bem?\n\n` +
+      `Ainda não identificamos o pagamento da mensalidade de *${v}*, que venceu *${daysLate === 1 ? `ontem (dia ${dueDay})` : `dia ${dueDay}`}*.\n\n` +
+      `Pode ter sido só um esquecimento, sem problema! 😊\n\n` +
+      `${PIX}\n\n` +
+      `Se já pagou, me avisa que eu confiro.`;
+  } else if (daysLate < 7) {
+    body =
+      `Oi, ${n}!\n\n` +
+      `Sua mensalidade de *${v}* está em aberto há *${daysLate} dias* (venceu dia ${dueDay}).\n\n` +
+      `Consegue regularizar hoje?\n\n` +
+      `${PIX}\n\n` +
+      `Se estiver com alguma dificuldade, me chama que a gente conversa. 🤝`;
+  } else {
+    body =
+      `Oi, ${n}.\n\n` +
+      `A mensalidade de *${v}* está em atraso há *${daysLate} dias* (venceu dia ${dueDay}).\n\n` +
+      `Precisamos do pagamento para manter o serviço ativo.\n\n` +
+      `${PIX}\n\n` +
+      `Se já pagou ou quer combinar outra data, é só responder esta mensagem. 🙏`;
+  }
+
+  return body + FOOTER;
 }
 
-function msgAmanha(name, dueDay, value) {
-  return (
-    `🤖 _Mensagem automática do sistema de gestão PA Control_\n` +
-    `━━━━━━━━━━━━━━━━━━━━━━\n\n` +
-    `Olá, *${name}*! 👋😊\n\n` +
-    `⚠️ *Sua mensalidade vence amanhã!*\n\n` +
-    `📅 Vencimento: *amanhã, dia ${dueDay}*\n` +
-    `💵 Valor: *${formatCurrency(value)}*\n\n` +
-    `━━━━━━━━━━━━━━━━━━━━━━\n` +
-    `💳 *Chave PIX para pagamento:*\n` +
-    `🔑 *62991803975*\n` +
-    `🏦 Nubank\n` +
-    `━━━━━━━━━━━━━━━━━━━━━━\n\n` +
-    `✅ Após o pagamento, seu acesso continua ativo normalmente!\n\n` +
-    `Qualquer dúvida é só chamar! 💬🙏`
-  );
-}
-
-function msgHoje(name, dueDay, value) {
-  return (
-    `🤖 _Mensagem automática do sistema de gestão PA Control_\n` +
-    `━━━━━━━━━━━━━━━━━━━━━━\n\n` +
-    `Olá, *${name}*! 👋😊\n\n` +
-    `🔔 *Sua mensalidade vence HOJE!*\n\n` +
-    `📅 Vencimento: *hoje, dia ${dueDay}*\n` +
-    `💵 Valor: *${formatCurrency(value)}*\n\n` +
-    `━━━━━━━━━━━━━━━━━━━━━━\n` +
-    `💳 *Chave PIX para pagamento:*\n` +
-    `🔑 *62991803975*\n` +
-    `🏦 Nubank\n` +
-    `━━━━━━━━━━━━━━━━━━━━━━\n\n` +
-    `✅ Realize o pagamento hoje para manter seu acesso ativo!\n\n` +
-    `Qualquer dúvida é só chamar! 💬🙏`
-  );
-}
-
-function msgAtrasada(name, dueDay, value, daysLate) {
-  return (
-    `🤖 _Mensagem automática do sistema de gestão PA Control_\n` +
-    `━━━━━━━━━━━━━━━━━━━━━━\n\n` +
-    `Olá, *${name}*! 👋\n\n` +
-    `🚨 *Mensalidade em atraso!*\n\n` +
-    `📅 Venceu em: *dia ${dueDay}* (${daysLate} dia${daysLate > 1 ? 's' : ''} em atraso)\n` +
-    `💵 Valor: *${formatCurrency(value)}*\n\n` +
-    `━━━━━━━━━━━━━━━━━━━━━━\n` +
-    `💳 *Chave PIX para pagamento:*\n` +
-    `🔑 *62991803975*\n` +
-    `🏦 Nubank\n` +
-    `━━━━━━━━━━━━━━━━━━━━━━\n\n` +
-    `⚠️ Regularize o pagamento para evitar interrupção do serviço.\n\n` +
-    `Qualquer dúvida é só chamar! 💬🙏`
-  );
-}
+// Em quais dias o envio automático acontece (em relação ao vencimento)
+const SCHEDULE = {
+  [-3]: 'aviso 3 dias antes',
+  [0]:  'vence hoje',
+  [1]:  'atraso 1 dia',
+  [3]:  'atraso 3 dias',
+  [7]:  'atraso 7 dias',
+};
 
 async function sendWhatsApp(phone, message) {
   const res = await fetch(`${EVOLUTION_URL}/message/sendText/${EVOLUTION_INSTANCE}`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      apikey: EVOLUTION_KEY,
-    },
-    body: JSON.stringify({
-      number: formatPhone(phone),
-      textMessage: { text: message },
-    }),
+    headers: { 'Content-Type': 'application/json', apikey: EVOLUTION_KEY },
+    body: JSON.stringify({ number: formatPhone(phone), text: message }),
   });
 
-  const data = await res.json();
-  if (!res.ok) throw new Error(JSON.stringify(data));
-  return data;
+  const text = await res.text();
+  if (!res.ok) throw new Error(`${res.status} ${text}`);
+  return text;
 }
 
 // ── Main ──────────────────────────────────────────────────────────────────────
 async function main() {
-  const today       = todayBRT();
-  const todayDate   = new Date(today + 'T12:00:00Z');
-  const todayDay    = todayDate.getDate();
-  const year        = todayDate.getFullYear();
-  const month       = todayDate.getMonth() + 1;
-  const currentMonthKey = `${year}-${String(month).padStart(2, '0')}`;
-
-  console.log(`\n📅 [${today}] Dia ${todayDay} — verificando mensagens a enviar...\n`);
-
-  // Busca todas as assinaturas ativas
-  const snapshot = await db.collection('subscriptions')
-    .where('status', '==', 'active')
-    .get();
-
-  if (snapshot.empty) {
-    console.log('✅ Nenhuma assinatura ativa.');
-    return;
+  if (!DRY_RUN && (!EVOLUTION_URL || !EVOLUTION_KEY || !EVOLUTION_INSTANCE)) {
+    throw new Error('Secrets da Evolution API ausentes.');
   }
 
-  let sent = 0;
-  let skipped = 0;
+  const { year, month, day } = todaySaoPaulo();
+  const today           = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+  const currentMonthKey = today.slice(0, 7);
+  const daysInMonth     = new Date(year, month, 0).getDate();
 
-  for (const doc of snapshot.docs) {
-    const sub  = { id: doc.id, ...doc.data() };
-    const name = sub.clientName || 'Cliente';
-    const dueDay = sub.dueDay;
+  console.log(`\n📅 [${today}] ${DRY_RUN ? 'MODO TESTE (nada será enviado)' : 'Enviando lembretes'}\n`);
 
-    // ── Já pagou este mês → pula ────────────────────────────────────────────
-    if (sub.payments?.[currentMonthKey] === true) {
-      continue;
-    }
+  const [subsSnap, clientsSnap] = await Promise.all([
+    db.collection('subscriptions').where('status', '==', 'active').get(),
+    db.collection('clients').get(),
+  ]);
+  const clients = new Map(clientsSnap.docs.map(d => [d.id, d.data()]));
 
-    // ── Já enviou mensagem hoje → pula ──────────────────────────────────────
+  let sent = 0, failed = 0, skipped = 0;
+
+  for (const doc of subsSnap.docs) {
+    const sub    = doc.data();
+    const legacy = sub.clientId ? clients.get(sub.clientId) : null;
+    const name   = sub.clientName || legacy?.name || 'Cliente';
+    const phone  = sub.clientPhone || legacy?.phone || '';
+
+    if (sub.payments?.[currentMonthKey] === true) continue;
+    if (!phone || !sub.dueDay) continue;
+
+    const dueDay   = Math.min(Number(sub.dueDay), daysInMonth);
+    const daysLate = day - dueDay;
+    const stage    = SCHEDULE[daysLate];
+    if (!stage) continue;
+
     if (sub.lastReminderDate === today) {
-      console.log(`⏭️  ${name} — mensagem já enviada hoje.`);
+      console.log(`⏭️  [${stage}] ${maskPhone(phone)} já recebeu hoje.`);
       skipped++;
       continue;
     }
 
-    // ── Sem telefone → pula ─────────────────────────────────────────────────
-    if (!sub.clientPhone) {
+    const message = chargeMessage(name, sub.monthlyValue, Number(sub.dueDay), daysLate);
+
+    if (DRY_RUN) {
+      console.log(`🧪 [${stage}] ${maskPhone(phone)}\n${message}\n`);
       continue;
     }
 
-    // ── Determina o tipo de mensagem pelo dia ────────────────────────────────
-    // Dias de atraso: positivo = atrasado, negativo = falta N dias
-    const diff = todayDay - dueDay;
-    let msg = null;
-    let tipo = '';
-
-    if (diff < -2) {
-      // Mais de 2 dias antes: sem mensagem (ex: dia 1 a 7 quando dueDay=10)
-      // Exceto se for exatamente 3 dias antes (dia 7 para vencimento dia 10)
-      if (diff === -3) {
-        msg  = msgAviso(name, dueDay, sub.monthlyValue);
-        tipo = 'aviso antecipado';
-      } else {
-        continue;
-      }
-    } else if (diff === -1) {
-      // Um dia antes do vencimento
-      msg  = msgAmanha(name, dueDay, sub.monthlyValue);
-      tipo = 'vence amanhã';
-    } else if (diff === 0) {
-      // Dia do vencimento
-      msg  = msgHoje(name, dueDay, sub.monthlyValue);
-      tipo = 'vence hoje';
-    } else if (diff > 0) {
-      // Em atraso — só envia 1x por dia (já garantido pelo lastReminderDate)
-      msg  = msgAtrasada(name, dueDay, sub.monthlyValue, diff);
-      tipo = `atrasada ${diff}d`;
-    }
-
-    if (!msg) continue;
-
     try {
-      await sendWhatsApp(sub.clientPhone, msg);
-
-      await db.collection('subscriptions').doc(doc.id).update({
+      await sendWhatsApp(phone, message);
+      await doc.ref.update({
         lastReminderDate: today,
+        lastReminderStage: stage,
         lastReminderAt: FieldValue.serverTimestamp(),
       });
-
-      console.log(`✅ [${tipo}] Enviado para ${name}`);
+      console.log(`✅ [${stage}] Enviado para ${maskPhone(phone)}`);
       sent++;
     } catch (err) {
-      console.error(`❌ Erro ao enviar para ${name}:`, err.message);
+      console.error(`❌ [${stage}] Falha para ${maskPhone(phone)}: ${err.message}`);
+      failed++;
     }
 
     await new Promise(r => setTimeout(r, 2500));
   }
 
-  console.log(`\n📊 Resultado: ${sent} enviados, ${skipped} pulados.\n`);
+  console.log(`\n📊 Resultado: ${sent} enviados, ${failed} falharam, ${skipped} já enviados hoje.\n`);
+
+  // Faz a execução aparecer como falha no GitHub quando algum envio não foi.
+  if (failed > 0) process.exitCode = 1;
 }
 
 main().catch(err => {

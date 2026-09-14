@@ -1,20 +1,20 @@
 import { useState } from 'react';
 import { MessageCircle, Loader2, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { sendWhatsApp, buildWaLink, reminderMessage } from '@/lib/whatsapp';
+import { sendWhatsApp, buildWaLink, chargeMessage, daysLateFor } from '@/lib/whatsapp';
 
 interface Props {
   phone: string;
   clientName: string;
   dueDay: number;
+  value: number;
 }
 
-export function WhatsAppButton({ phone, clientName, dueDay }: Props) {
+export function WhatsAppButton({ phone, clientName, dueDay, value }: Props) {
   const [status, setStatus] = useState<'idle' | 'sending' | 'sent'>('idle');
 
-  const message = reminderMessage(clientName, dueDay);
-
   const handleClick = async () => {
+    const message = chargeMessage(clientName, value, dueDay, daysLateFor(dueDay));
     setStatus('sending');
     try {
       await sendWhatsApp(phone, message);

@@ -2,9 +2,14 @@ name: 📲 Lembretes WhatsApp Automáticos
 
 on:
   schedule:
-    - cron: '0 12 * * *'   # 9h BRT (12h UTC)
-    - cron: '0 23 * * *'   # 20h BRT (23h UTC)
+    - cron: '0 12 * * *'   # 9h BRT
+    - cron: '0 17 * * *'   # 14h BRT (reenvia só o que falhou de manhã)
   workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Modo teste: mostra as mensagens sem enviar'
+        type: boolean
+        default: true
 
 jobs:
   send-reminders:
@@ -28,6 +33,7 @@ jobs:
       - name: Enviar lembretes
         run: node scripts/send-reminders.js
         env:
+          DRY_RUN: ${{ inputs.dry_run == true }}
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           EVOLUTION_API_URL: ${{ secrets.EVOLUTION_API_URL }}
           EVOLUTION_API_KEY: ${{ secrets.EVOLUTION_API_KEY }}

@@ -15,7 +15,7 @@ import { Search, Plus, Edit2, CheckCircle2, MessageCircle, Trash2, Send } from '
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'motion/react';
 import { isBefore, startOfDay, format } from 'date-fns';
-import { dueDateIn, sendWhatsApp, thankYouMessage } from '@/lib/whatsapp';
+import { buildWaLink, chargeMessage, daysLateFor, dueDateIn, sendWhatsApp, thankYouMessage } from '@/lib/whatsapp';
 import { PageHeader } from '@/components/PageHeader';
 
 export default function SubscriptionsPage() {
@@ -174,13 +174,10 @@ export default function SubscriptionsPage() {
       toast.error('Assinatura sem telefone cadastrado.');
       return;
     }
-    const cleanPhone = phone.replace(/\D/g, '');
-    const formattedValue = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(sub.monthlyValue);
-    const serviceText = sub.service ? ` referente a ${sub.service}` : '';
     
-    const message = `Olá, tudo bem? 👋\n\nPassando para lembrar que o vencimento da sua mensalidade${serviceText} está se aproximando (Dia ${sub.dueDay}). 🗓️\nValor: ${formattedValue} 💰\n\nPara facilitar, segue a nossa chave PIX: 💳\n*62991803975*\nNubank 🏦\n\nQualquer dúvida, estamos à disposição. Tenha um ótimo dia! 🌟`;
+    const message = chargeMessage(getSubClientName(sub), sub.monthlyValue, sub.dueDay, daysLateFor(sub.dueDay));
     
-    window.open(`https://wa.me/55${cleanPhone}?text=${encodeURIComponent(message)}`, '_blank');
+    window.open(buildWaLink(phone, message), '_blank');
   };
 
   const filteredSubs = subs.filter(s => {

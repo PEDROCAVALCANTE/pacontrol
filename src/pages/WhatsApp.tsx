@@ -8,16 +8,12 @@ import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { getClients, getSubscriptions } from '@/lib/data-store';
 import { Subscription } from '@/lib/types';
-import { apiFetch, dueDateIn, sendWhatsApp, subClientName, subClientPhone, thankYouMessage } from '@/lib/whatsapp';
+import { apiFetch, chargeMessage, daysLateFor, sendWhatsApp, subClientName, subClientPhone, thankYouMessage } from '@/lib/whatsapp';
 
 // Assinatura com nome/telefone resolvidos (inclui cadastros legados por clientId)
 type ClientSub = Subscription & { clientName: string; clientPhone: string };
 
-function daysLate(dueDay: number): number {
-  const now = new Date();
-  const due = dueDateIn(now, dueDay);
-  return Math.max(0, now.getDate() - due.getDate());
-}
+const daysLate = (dueDay: number) => daysLateFor(dueDay);
 
 type ConnectionState = 'open' | 'connecting' | 'close' | 'unknown';
 
@@ -124,10 +120,8 @@ export default function WhatsAppPage() {
     let defaultMsg = '';
     if (isPaid) {
       defaultMsg = thankYouMessage(sub.clientName, sub.monthlyValue, new Date());
-    } else if (diff > 0) {
-      defaultMsg = `🤖 _Mensagem automática do sistema de gestão PA Control_\n━━━━━━━━━━━━━━━━━━━━━━\n\nOlá, *${sub.clientName}*! 👋\n\n🚨 *Mensalidade em atraso!*\n\n📅 Venceu no *dia ${dueDay}* (${diff} dia${diff > 1 ? 's' : ''} em atraso)\n💵 Valor: *${formatCurrency(Number(sub.monthlyValue))}*\n\n━━━━━━━━━━━━━━━━━━━━━━\n💳 *Chave PIX:* 62991803975 (Nubank)\n━━━━━━━━━━━━━━━━━━━━━━\n\n⚠️ Regularize para evitar interrupção do serviço.\n\nQualquer dúvida é só chamar! 💬🙏`;
     } else {
-      defaultMsg = `Olá, *${sub.clientName}*! 👋\n\nTudo bem? Precisando de algo é só falar! 😊`;
+      defaultMsg = chargeMessage(sub.clientName, sub.monthlyValue, dueDay, diff);
     }
 
     setSendModal({ sub, message: defaultMsg });
