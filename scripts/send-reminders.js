@@ -40,13 +40,41 @@ function todaySaoPaulo() {
 // ── Mensagens ─────────────────────────────────────────────────────────────────
 // Manter os textos iguais aos de src/lib/whatsapp.ts (chargeMessage).
 
-const PIX =
-  `*Chave PIX (CNPJ)*\n` +
-  `69360759000181\n\n` +
-  `Favorecido: PEDRO HENRIQUE FIGUEIRA DA SILVA CAVALCANTE\n` +
-  `Instituição: Banco Inter`;
-
 const FOOTER = `\n\n_PA Control · mensagem automática_`;
+
+// PIX Copia e Cola (BR Code). Manter igual ao de src/lib/whatsapp.ts.
+const PIX_KEY  = '69360759000181';
+const PIX_NAME = 'PEDRO H F S CAVALCANTE';
+const PIX_CITY = 'APARECIDA DE GO';
+
+const tlv = (id, value) => id + String(value.length).padStart(2, '0') + value;
+
+function crc16(payload) {
+  let crc = 0xffff;
+  for (let i = 0; i < payload.length; i++) {
+    crc ^= payload.charCodeAt(i) << 8;
+    for (let j = 0; j < 8; j++) {
+      crc = (crc & 0x8000) ? ((crc << 1) ^ 0x1021) : (crc << 1);
+      crc &= 0xffff;
+    }
+  }
+  return crc.toString(16).toUpperCase().padStart(4, '0');
+}
+
+function pixPayload(value) {
+  const body =
+    tlv('00', '01') +
+    tlv('26', tlv('00', 'BR.GOV.BCB.PIX') + tlv('01', PIX_KEY)) +
+    tlv('52', '0000') +
+    tlv('53', '986') +
+    tlv('54', Number(value).toFixed(2)) +
+    tlv('58', 'BR') +
+    tlv('59', PIX_NAME) +
+    tlv('60', PIX_CITY) +
+    tlv('62', tlv('05', '***')) +
+    '6304';
+  return body + crc16(body);
+}
 
 // Nome de tratamento: serve para pessoa e para razao social.
 // Manter igual ao displayName de src/lib/whatsapp.ts.
@@ -64,39 +92,40 @@ const displayName = name => {
 function chargeMessage(name, value, dueDay, daysLate) {
   const n = displayName(name);
   const v = formatCurrency(value);
+  const PIX_AVISO = 'Para pagar, copie o código PIX da próxima mensagem e cole no seu banco. O valor e o favorecido já vão preenchidos.';
   let body;
 
   if (daysLate < 0) {
     body =
       `Olá, ${n}! 👋\n\n` +
       `Sua mensalidade de *${v}* vence no *dia ${dueDay}*.\n\n` +
-      `${PIX}\n\n` +
+      `${PIX_AVISO}\n\n` +
       `Se o pagamento já foi realizado, desconsidere esta mensagem. Obrigado!`;
   } else if (daysLate === 0) {
     body =
       `Olá, ${n}! 👋\n\n` +
       `Sua mensalidade de *${v}* vence *hoje (dia ${dueDay})*.\n\n` +
-      `${PIX}\n\n` +
+      `${PIX_AVISO}\n\n` +
       `Se o pagamento já foi realizado, desconsidere esta mensagem. Obrigado!`;
   } else if (daysLate < 3) {
     body =
       `Olá, ${n}!\n\n` +
       `Ainda não identificamos o pagamento da mensalidade de *${v}*, com vencimento em *${daysLate === 1 ? `ontem, dia ${dueDay}` : `dia ${dueDay}`}*.\n\n` +
-      `${PIX}\n\n` +
+      `${PIX_AVISO}\n\n` +
       `Se já efetuou o pagamento, por favor envie o comprovante para conferência.`;
   } else if (daysLate < 7) {
     body =
       `Olá, ${n}!\n\n` +
       `A mensalidade de *${v}* está em aberto há *${daysLate} dias* (vencimento dia ${dueDay}).\n\n` +
       `Pedimos a gentileza de regularizar o pagamento.\n\n` +
-      `${PIX}\n\n` +
+      `${PIX_AVISO}\n\n` +
       `Caso esteja com alguma dificuldade, podemos combinar uma nova data. É só responder esta mensagem.`;
   } else {
     body =
       `Olá, ${n}.\n\n` +
       `A mensalidade de *${v}* consta em atraso há *${daysLate} dias* (vencimento dia ${dueDay}).\n\n` +
       `Para manter o serviço ativo, solicitamos a regularização do pagamento.\n\n` +
-      `${PIX}\n\n` +
+      `${PIX_AVISO}\n\n` +
       `Se o pagamento já foi realizado ou deseja combinar uma nova data, responda esta mensagem.`;
   }
 
@@ -172,14 +201,18 @@ async function main() {
 
     // usa o dia efetivo (dia 31 em mes de 30 dias vira dia 30) para o texto bater com o calculo
     const message = chargeMessage(name, sub.monthlyValue, dueDay, daysLate);
+    const pix     = pixPayload(sub.monthlyValue);
 
     if (DRY_RUN) {
-      console.log(`🧪 [${stage}] ${maskPhone(phone)}\n${message}\n`);
+      console.log(`🧪 [${stage}] ${maskPhone(phone)}\n${message}\n\n--- 2a mensagem (PIX copia e cola) ---\n${pix}\n`);
       continue;
     }
 
     try {
       await sendWhatsApp(phone, message);
+      // O codigo vai sozinho numa segunda mensagem para o cliente copiar com um toque.
+      await new Promise(r => setTimeout(r, 1200));
+      await sendWhatsApp(phone, pix);
       await doc.ref.update({
         lastReminderDate: today,
         lastReminderStage: stage,

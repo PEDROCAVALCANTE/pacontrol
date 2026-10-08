@@ -61,13 +61,46 @@ export function daysLateFor(dueDay: number, now = new Date()): number {
 // ── Mensagens ─────────────────────────────────────────────────────────────────
 // Manter os textos iguais aos de scripts/send-reminders.js (envio automático).
 
-const PIX =
-  `*Chave PIX (CNPJ)*\n` +
-  `69360759000181\n\n` +
-  `Favorecido: PEDRO HENRIQUE FIGUEIRA DA SILVA CAVALCANTE\n` +
-  `Instituição: Banco Inter`;
-
 const FOOTER = `\n\n_PA Control · mensagem automática_`;
+
+// ── PIX Copia e Cola (BR Code) ────────────────────────────────────────────────
+// Padrao EMV do Banco Central. O cliente cola no app do banco e o valor e o
+// favorecido ja vem preenchidos. Manter igual em scripts/send-reminders.js.
+
+const PIX_KEY   = '69360759000181';                 // CNPJ, so digitos
+const PIX_NAME  = 'PEDRO H F S CAVALCANTE';         // limite de 25 caracteres
+const PIX_CITY  = 'APARECIDA DE GO';                // limite de 15 caracteres
+
+const tlv = (id: string, value: string) => id + String(value.length).padStart(2, '0') + value;
+
+function crc16(payload: string): string {
+  let crc = 0xffff;
+  for (let i = 0; i < payload.length; i++) {
+    crc ^= payload.charCodeAt(i) << 8;
+    for (let j = 0; j < 8; j++) {
+      crc = (crc & 0x8000) ? ((crc << 1) ^ 0x1021) : (crc << 1);
+      crc &= 0xffff;
+    }
+  }
+  return crc.toString(16).toUpperCase().padStart(4, '0');
+}
+
+/** Codigo PIX Copia e Cola com o valor da mensalidade. */
+export function pixPayload(value: number): string {
+  const amount = Number(value).toFixed(2);
+  const body =
+    tlv('00', '01') +
+    tlv('26', tlv('00', 'BR.GOV.BCB.PIX') + tlv('01', PIX_KEY)) +
+    tlv('52', '0000') +
+    tlv('53', '986') +
+    tlv('54', amount) +
+    tlv('58', 'BR') +
+    tlv('59', PIX_NAME) +
+    tlv('60', PIX_CITY) +
+    tlv('62', tlv('05', '***')) +
+    '6304';
+  return body + crc16(body);
+}
 
 const SUFIXOS = /^(ltda|ltda\.|me|mei|eireli|epp|s\/a|sa|s\.a\.|cia)$/i;
 const PREPOSICOES = /^(de|da|do|das|dos|e)$/i;
@@ -93,41 +126,54 @@ export function chargeMessage(name: string, value: number, dueDay: number, daysL
   const v = fmtBRL(value);
   let body: string;
 
+  const PIX_AVISO = `Para pagar, copie o código PIX da próxima mensagem e cole no seu banco. O valor e o favorecido já vão preenchidos.`;
+
   if (daysLate < 0) {
     body =
       `Olá, ${n}! 👋\n\n` +
       `Sua mensalidade de *${v}* vence no *dia ${dueDay}*.\n\n` +
-      `${PIX}\n\n` +
+      `${PIX_AVISO}\n\n` +
       `Se o pagamento já foi realizado, desconsidere esta mensagem. Obrigado!`;
   } else if (daysLate === 0) {
     body =
       `Olá, ${n}! 👋\n\n` +
       `Sua mensalidade de *${v}* vence *hoje (dia ${dueDay})*.\n\n` +
-      `${PIX}\n\n` +
+      `${PIX_AVISO}\n\n` +
       `Se o pagamento já foi realizado, desconsidere esta mensagem. Obrigado!`;
   } else if (daysLate < 3) {
     body =
       `Olá, ${n}!\n\n` +
       `Ainda não identificamos o pagamento da mensalidade de *${v}*, com vencimento em *${daysLate === 1 ? `ontem, dia ${dueDay}` : `dia ${dueDay}`}*.\n\n` +
-      `${PIX}\n\n` +
+      `${PIX_AVISO}\n\n` +
       `Se já efetuou o pagamento, por favor envie o comprovante para conferência.`;
   } else if (daysLate < 7) {
     body =
       `Olá, ${n}!\n\n` +
       `A mensalidade de *${v}* está em aberto há *${daysLate} dias* (vencimento dia ${dueDay}).\n\n` +
       `Pedimos a gentileza de regularizar o pagamento.\n\n` +
-      `${PIX}\n\n` +
+      `${PIX_AVISO}\n\n` +
       `Caso esteja com alguma dificuldade, podemos combinar uma nova data. É só responder esta mensagem.`;
   } else {
     body =
       `Olá, ${n}.\n\n` +
       `A mensalidade de *${v}* consta em atraso há *${daysLate} dias* (vencimento dia ${dueDay}).\n\n` +
       `Para manter o serviço ativo, solicitamos a regularização do pagamento.\n\n` +
-      `${PIX}\n\n` +
+      `${PIX_AVISO}\n\n` +
       `Se o pagamento já foi realizado ou deseja combinar uma nova data, responda esta mensagem.`;
   }
 
   return auto ? body + FOOTER : body;
+}
+
+/**
+ * Envia a cobrança em duas mensagens: o texto e, logo depois, só o código PIX.
+ * Separar é o que permite ao cliente copiar o código com um toque.
+ */
+export async function sendCharge(
+  phone: string, name: string, value: number, dueDay: number, daysLate: number,
+): Promise<void> {
+  await sendWhatsApp(phone, chargeMessage(name, value, dueDay, daysLate));
+  await sendWhatsApp(phone, pixPayload(value));
 }
 
 export function thankYouMessage(name: string, value: number, month: Date): string {
