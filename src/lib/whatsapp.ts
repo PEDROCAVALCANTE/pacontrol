@@ -61,7 +61,12 @@ export function daysLateFor(dueDay: number, now = new Date()): number {
 // ── Mensagens ─────────────────────────────────────────────────────────────────
 // Manter os textos iguais aos de scripts/send-reminders.js (envio automático).
 
-const PIX    = `PIX (Nubank):\n62991803975`;
+const PIX =
+  `*Chave PIX (CNPJ)*\n` +
+  `69360759000181\n\n` +
+  `Favorecido: PEDRO HENRIQUE FIGUEIRA DA SILVA CAVALCANTE\n` +
+  `Instituição: Banco Inter`;
+
 const FOOTER = `\n\n_PA Control · mensagem automática_`;
 
 const firstName = (name: string) => name.trim().split(/\s+/)[0] || name;
@@ -77,37 +82,36 @@ export function chargeMessage(name: string, value: number, dueDay: number, daysL
 
   if (daysLate < 0) {
     body =
-      `Oi, ${n}! Tudo bem? 😊\n\n` +
-      `Passando pra lembrar que sua mensalidade de *${v}* vence *dia ${dueDay}*.\n\n` +
+      `Olá, ${n}! 👋\n\n` +
+      `Sua mensalidade de *${v}* vence no *dia ${dueDay}*.\n\n` +
       `${PIX}\n\n` +
-      `Se já pagou, pode desconsiderar. Obrigado! 🙏`;
+      `Se o pagamento já foi realizado, desconsidere esta mensagem. Obrigado!`;
   } else if (daysLate === 0) {
     body =
-      `Oi, ${n}! 😊\n\n` +
-      `Sua mensalidade de *${v}* vence *hoje*.\n\n` +
+      `Olá, ${n}! 👋\n\n` +
+      `Sua mensalidade de *${v}* vence *hoje (dia ${dueDay})*.\n\n` +
       `${PIX}\n\n` +
-      `Se já pagou, é só desconsiderar. Obrigado! 🙏`;
+      `Se o pagamento já foi realizado, desconsidere esta mensagem. Obrigado!`;
   } else if (daysLate < 3) {
     body =
-      `Oi, ${n}, tudo bem?\n\n` +
-      `Ainda não identificamos o pagamento da mensalidade de *${v}*, que venceu *${daysLate === 1 ? `ontem (dia ${dueDay})` : `dia ${dueDay}`}*.\n\n` +
-      `Pode ter sido só um esquecimento, sem problema! 😊\n\n` +
+      `Olá, ${n}!\n\n` +
+      `Ainda não identificamos o pagamento da mensalidade de *${v}*, com vencimento em *${daysLate === 1 ? `ontem, dia ${dueDay}` : `dia ${dueDay}`}*.\n\n` +
       `${PIX}\n\n` +
-      `Se já pagou, me avisa que eu confiro.`;
+      `Se já efetuou o pagamento, por favor envie o comprovante para conferência.`;
   } else if (daysLate < 7) {
     body =
-      `Oi, ${n}!\n\n` +
-      `Sua mensalidade de *${v}* está em aberto há *${daysLate} dias* (venceu dia ${dueDay}).\n\n` +
-      `Consegue regularizar hoje?\n\n` +
+      `Olá, ${n}!\n\n` +
+      `A mensalidade de *${v}* está em aberto há *${daysLate} dias* (vencimento dia ${dueDay}).\n\n` +
+      `Pedimos a gentileza de regularizar o pagamento.\n\n` +
       `${PIX}\n\n` +
-      `Se estiver com alguma dificuldade, me chama que a gente conversa. 🤝`;
+      `Caso esteja com alguma dificuldade, podemos combinar uma nova data. É só responder esta mensagem.`;
   } else {
     body =
-      `Oi, ${n}.\n\n` +
-      `A mensalidade de *${v}* está em atraso há *${daysLate} dias* (venceu dia ${dueDay}).\n\n` +
-      `Precisamos do pagamento para manter o serviço ativo.\n\n` +
+      `Olá, ${n}.\n\n` +
+      `A mensalidade de *${v}* consta em atraso há *${daysLate} dias* (vencimento dia ${dueDay}).\n\n` +
+      `Para manter o serviço ativo, solicitamos a regularização do pagamento.\n\n` +
       `${PIX}\n\n` +
-      `Se já pagou ou quer combinar outra data, é só responder esta mensagem. 🙏`;
+      `Se o pagamento já foi realizado ou deseja combinar uma nova data, responda esta mensagem.`;
   }
 
   return auto ? body + FOOTER : body;
@@ -115,9 +119,9 @@ export function chargeMessage(name: string, value: number, dueDay: number, daysL
 
 export function thankYouMessage(name: string, value: number, month: Date): string {
   return (
-    `Oi, ${firstName(name)}! 😊\n\n` +
-    `Recebemos seu pagamento de *${fmtBRL(value)}* referente a *${format(month, "MMMM 'de' yyyy", { locale: ptBR })}*. ✅\n\n` +
-    `Obrigado por manter tudo em dia! Qualquer coisa, é só chamar. 🙏` +
+    `Olá, ${firstName(name)}! ✅\n\n` +
+    `Confirmamos o recebimento do seu pagamento de *${fmtBRL(value)}*, referente a *${format(month, "MMMM 'de' yyyy", { locale: ptBR })}*.\n\n` +
+    `Obrigado pela confiança! Qualquer dúvida, estamos à disposição.` +
     FOOTER
   );
 }
