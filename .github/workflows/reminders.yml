@@ -9,10 +9,10 @@ on:
       modo:
         description: 'O que fazer agora'
         type: choice
-        default: 'teste (apenas mostra, nao envia)'
+        default: 'enviar'
         options:
-          - 'teste (apenas mostra, nao envia)'
-          - 'ENVIAR de verdade aos clientes'
+          - 'enviar'
+          - 'teste'
 
 jobs:
   send-reminders:
@@ -33,12 +33,15 @@ jobs:
       - name: Instalar dependências
         run: cd scripts && npm install
 
+      - name: Modo desta execucao
+        run: echo "evento=${{ github.event_name }} modo=${{ inputs.modo }} DRY_RUN=${{ github.event_name == 'workflow_dispatch' && inputs.modo == 'teste' }}"
+
       - name: Enviar lembretes
         run: node scripts/send-reminders.js
         env:
-          # Nos horarios automaticos sempre envia. No disparo manual, so envia
-          # quando a opcao escolhida for a de enviar de verdade.
-          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.modo != 'ENVIAR de verdade aos clientes' }}
+          # Nos horarios automaticos sempre envia. No disparo manual, so nao envia
+          # quando a opcao escolhida for teste.
+          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.modo == 'teste' }}
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           EVOLUTION_API_URL: ${{ secrets.EVOLUTION_API_URL }}
           EVOLUTION_API_KEY: ${{ secrets.EVOLUTION_API_KEY }}
