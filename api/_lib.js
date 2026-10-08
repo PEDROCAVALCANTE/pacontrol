@@ -10,8 +10,13 @@ export function evolutionConfig() {
   };
 }
 
-// Único e-mail autorizado a usar as rotas (mesma regra do firestore.rules).
-const OWNER_EMAIL = stripBom(process.env.OWNER_EMAIL) || 'ocultanonymato@gmail.com';
+// Por padrão basta estar autenticado no projeto Firebase do sistema.
+// Para restringir a contas especificas, defina OWNER_EMAILS na Vercel
+// com os e-mails separados por virgula.
+const ALLOWED_EMAILS = stripBom(process.env.OWNER_EMAILS)
+  ?.split(',')
+  .map(e => e.trim().toLowerCase())
+  .filter(Boolean) ?? [];
 
 // Valida o ID token do Firebase enviado pelo app. Sem isso qualquer pessoa
 // poderia disparar mensagens ou puxar o QR Code da instância.
@@ -36,11 +41,13 @@ export async function requireUser(req, res) {
       return false;
     }
 
-    const data  = await r.json();
-    const email = data?.users?.[0]?.email?.toLowerCase();
-    if (email !== OWNER_EMAIL.toLowerCase()) {
-      res.status(403).json({ error: 'Conta sem permissão para usar o WhatsApp' });
-      return false;
+    if (ALLOWED_EMAILS.length > 0) {
+      const data  = await r.json();
+      const email = data?.users?.[0]?.email?.toLowerCase();
+      if (!email || !ALLOWED_EMAILS.includes(email)) {
+        res.status(403).json({ error: 'Conta sem permissão para usar o WhatsApp' });
+        return false;
+      }
     }
     return true;
   } catch {
