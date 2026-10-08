@@ -69,14 +69,27 @@ const PIX =
 
 const FOOTER = `\n\n_PA Control · mensagem automática_`;
 
-const firstName = (name: string) => name.trim().split(/\s+/)[0] || name;
+const SUFIXOS = /^(ltda|ltda\.|me|mei|eireli|epp|s\/a|sa|s\.a\.|cia)$/i;
+const PREPOSICOES = /^(de|da|do|das|dos|e)$/i;
+
+/**
+ * Nome de tratamento: funciona para pessoa ("Maria Aparecida de Souza" -> "Maria Aparecida")
+ * e para empresa ("Colegio Sao Jose Educacao Ltda" -> "Colegio Sao Jose").
+ */
+const displayName = (name: string): string => {
+  const words = name.trim().split(/\s+/).filter(w => w && !SUFIXOS.test(w));
+  if (words.length === 0) return name.trim();
+  const picked = words.length <= 3 ? words : words.slice(0, 3);
+  while (picked.length > 1 && PREPOSICOES.test(picked[picked.length - 1])) picked.pop();
+  return picked.join(' ');
+};
 
 /**
  * Lembrete ou cobrança conforme o momento:
  * antes do vencimento, no dia, 1-2 dias, 3-6 dias ou 7+ dias de atraso.
  */
 export function chargeMessage(name: string, value: number, dueDay: number, daysLate: number, auto = false): string {
-  const n = firstName(name);
+  const n = displayName(name);
   const v = fmtBRL(value);
   let body: string;
 
@@ -119,7 +132,7 @@ export function chargeMessage(name: string, value: number, dueDay: number, daysL
 
 export function thankYouMessage(name: string, value: number, month: Date): string {
   return (
-    `Olá, ${firstName(name)}! ✅\n\n` +
+    `Olá, ${displayName(name)}! ✅\n\n` +
     `Confirmamos o recebimento do seu pagamento de *${fmtBRL(value)}*, referente a *${format(month, "MMMM 'de' yyyy", { locale: ptBR })}*.\n\n` +
     `Obrigado pela confiança! Qualquer dúvida, estamos à disposição.` +
     FOOTER

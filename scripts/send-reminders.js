@@ -48,10 +48,21 @@ const PIX =
 
 const FOOTER = `\n\n_PA Control · mensagem automática_`;
 
-const firstName = name => name.trim().split(/\s+/)[0] || name;
+// Nome de tratamento: serve para pessoa e para razao social.
+// Manter igual ao displayName de src/lib/whatsapp.ts.
+const SUFIXOS = /^(ltda|ltda\.|me|mei|eireli|epp|s\/a|sa|s\.a\.|cia)$/i;
+const PREPOSICOES = /^(de|da|do|das|dos|e)$/i;
+
+const displayName = name => {
+  const words = name.trim().split(/\s+/).filter(w => w && !SUFIXOS.test(w));
+  if (words.length === 0) return name.trim();
+  const picked = words.length <= 3 ? words : words.slice(0, 3);
+  while (picked.length > 1 && PREPOSICOES.test(picked[picked.length - 1])) picked.pop();
+  return picked.join(' ');
+};
 
 function chargeMessage(name, value, dueDay, daysLate) {
-  const n = firstName(name);
+  const n = displayName(name);
   const v = formatCurrency(value);
   let body;
 
