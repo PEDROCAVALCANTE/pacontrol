@@ -6,10 +6,13 @@ on:
     - cron: '0 17 * * *'   # 14h BRT (reenvia só o que falhou de manhã)
   workflow_dispatch:
     inputs:
-      dry_run:
-        description: 'Modo teste: mostra as mensagens sem enviar'
-        type: boolean
-        default: true
+      modo:
+        description: 'O que fazer agora'
+        type: choice
+        default: 'teste (apenas mostra, nao envia)'
+        options:
+          - 'teste (apenas mostra, nao envia)'
+          - 'ENVIAR de verdade aos clientes'
 
 jobs:
   send-reminders:
@@ -33,7 +36,9 @@ jobs:
       - name: Enviar lembretes
         run: node scripts/send-reminders.js
         env:
-          DRY_RUN: ${{ inputs.dry_run == true }}
+          # Nos horarios automaticos sempre envia. No disparo manual, so envia
+          # quando a opcao escolhida for a de enviar de verdade.
+          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.modo != 'ENVIAR de verdade aos clientes' }}
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           EVOLUTION_API_URL: ${{ secrets.EVOLUTION_API_URL }}
           EVOLUTION_API_KEY: ${{ secrets.EVOLUTION_API_KEY }}
