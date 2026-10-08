@@ -9,9 +9,9 @@ const EVOLUTION_KEY      = clean(process.env.EVOLUTION_API_KEY);
 const EVOLUTION_INSTANCE = clean(process.env.EVOLUTION_INSTANCE);
 const DRY_RUN            = process.env.DRY_RUN === 'true';
 
-const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-initializeApp({ credential: cert(serviceAccount) });
-const db = getFirestore();
+// Inicializado dentro de main, para que este arquivo possa ser carregado
+// em um teste sem exigir as credenciais.
+let db;
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function formatPhone(phone) {
@@ -159,6 +159,9 @@ async function main() {
     throw new Error('Secrets da Evolution API ausentes.');
   }
 
+  initializeApp({ credential: cert(JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT)) });
+  db = getFirestore();
+
   const { year, month, day } = todaySaoPaulo();
   const today           = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
   const currentMonthKey = today.slice(0, 7);
@@ -234,7 +237,12 @@ async function main() {
   if (failed > 0) process.exitCode = 1;
 }
 
-main().catch(err => {
-  console.error('Erro fatal:', err);
-  process.exit(1);
-});
+if (require.main === module) {
+  main().catch(err => {
+    console.error('Erro fatal:', err);
+    process.exit(1);
+  });
+}
+
+// Exportado para permitir conferir os textos sem enviar nada.
+module.exports = { chargeMessage, pixPayload, displayName };
