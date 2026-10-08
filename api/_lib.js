@@ -10,6 +10,9 @@ export function evolutionConfig() {
   };
 }
 
+// Único e-mail autorizado a usar as rotas (mesma regra do firestore.rules).
+const OWNER_EMAIL = stripBom(process.env.OWNER_EMAIL) || 'ocultanonymato@gmail.com';
+
 // Valida o ID token do Firebase enviado pelo app. Sem isso qualquer pessoa
 // poderia disparar mensagens ou puxar o QR Code da instância.
 export async function requireUser(req, res) {
@@ -18,7 +21,7 @@ export async function requireUser(req, res) {
   const apiKey = stripBom(process.env.VITE_FIREBASE_API_KEY);
 
   if (!token || !apiKey) {
-    res.status(401).json({ error: 'Nao autorizado' });
+    res.status(401).json({ error: 'Não autorizado' });
     return false;
   }
 
@@ -29,12 +32,19 @@ export async function requireUser(req, res) {
       body: JSON.stringify({ idToken: token }),
     });
     if (!r.ok) {
-      res.status(401).json({ error: 'Sessao invalida' });
+      res.status(401).json({ error: 'Sessão inválida' });
+      return false;
+    }
+
+    const data  = await r.json();
+    const email = data?.users?.[0]?.email?.toLowerCase();
+    if (email !== OWNER_EMAIL.toLowerCase()) {
+      res.status(403).json({ error: 'Conta sem permissão para usar o WhatsApp' });
       return false;
     }
     return true;
   } catch {
-    res.status(401).json({ error: 'Nao autorizado' });
+    res.status(401).json({ error: 'Não autorizado' });
     return false;
   }
 }

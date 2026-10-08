@@ -153,6 +153,11 @@ async function main() {
 
     if (sub.payments?.[currentMonthKey] === true) continue;
     if (!phone || !sub.dueDay) continue;
+    if (!Number.isFinite(Number(sub.monthlyValue)) || Number(sub.monthlyValue) <= 0) {
+      console.log(`⏭️  ${maskPhone(phone)} sem valor mensal valido.`);
+      skipped++;
+      continue;
+    }
 
     const dueDay   = Math.min(Number(sub.dueDay), daysInMonth);
     const daysLate = day - dueDay;
@@ -165,7 +170,8 @@ async function main() {
       continue;
     }
 
-    const message = chargeMessage(name, sub.monthlyValue, Number(sub.dueDay), daysLate);
+    // usa o dia efetivo (dia 31 em mes de 30 dias vira dia 30) para o texto bater com o calculo
+    const message = chargeMessage(name, sub.monthlyValue, dueDay, daysLate);
 
     if (DRY_RUN) {
       console.log(`🧪 [${stage}] ${maskPhone(phone)}\n${message}\n`);

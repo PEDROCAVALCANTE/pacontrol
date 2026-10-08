@@ -6,7 +6,7 @@ export default async function handler(req, res) {
 
   const { url, key, instance } = evolutionConfig();
   if (!url || !key || !instance) {
-    return res.status(500).json({ error: 'Evolution API nao configurada' });
+    return res.status(500).json({ error: 'Evolution API não configurada' });
   }
 
   try {

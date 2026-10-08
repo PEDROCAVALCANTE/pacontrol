@@ -14,7 +14,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { motion, AnimatePresence } from 'motion/react';
 import { WhatsAppButton } from '@/components/WhatsAppButton';
 import { DashboardSkeleton } from '@/components/Skeleton';
-import { sendWhatsApp, thankYouMessage } from '@/lib/whatsapp';
+import { daysLateFor, sendWhatsApp, thankYouMessage } from '@/lib/whatsapp';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -248,7 +248,6 @@ export default function DashboardPage() {
   const prevMonthKey    = format(prevMonth, 'yyyy-MM');
   const prevMonthLabel  = format(prevMonth, 'MMM/yy', { locale: ptBR });
   const monthLabel      = format(today, "MMMM 'de' yyyy", { locale: ptBR });
-  const isTodayAfter10  = today.getDate() > 10;
 
   const getSubClientName  = (sub: Subscription) =>
     sub.clientName ?? clients.find(c => c.id === sub.clientId)?.name ?? 'Desconhecido';
@@ -425,7 +424,7 @@ export default function DashboardPage() {
               const isPaidCurrent = isPaidCurrentMonth(sub);
               const isPaidPrev    = !!(sub.payments?.[prevMonthKey]);
               const cPhone        = getSubClientPhone(sub).replace(/\D/g, '');
-              const canSend       = !isPaidCurrent && isTodayAfter10 && !!cPhone;
+              const canSend       = !isPaidCurrent && daysLateFor(sub.dueDay) >= 0 && !!cPhone;
               return (
                 <motion.div
                   key={sub.id}
@@ -511,7 +510,8 @@ export default function DashboardPage() {
                     const isPaidCurrent = isPaidCurrentMonth(sub);
                     const isPaidPrev    = !!(sub.payments?.[prevMonthKey]);
                     const cPhone        = getSubClientPhone(sub).replace(/\D/g, '');
-                    const canSend       = !isPaidCurrent && isTodayAfter10 && !!cPhone;
+                    // Lembrete aparece quando vence hoje ou já venceu, por cliente
+                    const canSend       = !isPaidCurrent && daysLateFor(sub.dueDay) >= 0 && !!cPhone;
 
                     return (
                       <motion.tr

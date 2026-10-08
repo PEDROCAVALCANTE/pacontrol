@@ -6,12 +6,12 @@ export default async function handler(req, res) {
 
   const { url, key, instance } = evolutionConfig();
   if (!url || !key || !instance) {
-    return res.status(500).json({ error: 'Evolution API nao configurada' });
+    return res.status(500).json({ error: 'Evolution API não configurada' });
   }
 
   const { phone, message } = req.body ?? {};
   if (!phone || !message) {
-    return res.status(400).json({ error: 'phone e message sao obrigatorios' });
+    return res.status(400).json({ error: 'Telefone e mensagem são obrigatórios' });
   }
 
   const digits = String(phone).replace(/\D/g, '');

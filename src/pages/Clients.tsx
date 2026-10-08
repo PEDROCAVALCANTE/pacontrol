@@ -117,8 +117,11 @@ export default function ClientsPage() {
       toast.error('Cliente sem telefone cadastrado.');
       return;
     }
-    const dueDay = client.dueDay ?? 10;
-    const message = chargeMessage(client.name, client.value ?? 0, dueDay, daysLateFor(dueDay));
+    if (!client.dueDay || !client.value) {
+      toast.error('Cadastre o valor e o dia de vencimento antes de enviar a cobrança.');
+      return;
+    }
+    const message = chargeMessage(client.name, client.value, client.dueDay, daysLateFor(client.dueDay));
 
     window.open(buildWaLink(client.phone, message), '_blank');
   };
