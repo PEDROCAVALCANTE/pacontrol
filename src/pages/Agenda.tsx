@@ -158,7 +158,7 @@ export default function AgendaPage() {
       />
 
       {/* Month Navigation & Summary */}
-      <div className="glass-panel p-4 rounded-[1.5rem] shadow-lg">
+      <div className="panel-raised p-4">
         {/* Month selector */}
         <div className="flex items-center justify-between gap-4 mb-4">
           <Button
@@ -198,7 +198,7 @@ export default function AgendaPage() {
       {/* Agenda List */}
       <div className="grid gap-4">
         {scheduledItems.length === 0 ? (
-          <div className="text-center py-12 bg-card/40 rounded-2xl">
+          <div className="panel text-center py-12">
             <CalendarIcon className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-50" />
             <p className="text-muted-foreground">Nenhuma assinatura ativa para agendamento.</p>
           </div>
@@ -209,7 +209,7 @@ export default function AgendaPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.05 }}
-              className="glass-panel p-4 sm:p-5 rounded-2xl transition-all duration-300"
+              className="panel p-4 sm:p-5"
             >
               {/* Top row: day + name + badge */}
               <div className="flex items-center gap-4 mb-3 sm:mb-0">

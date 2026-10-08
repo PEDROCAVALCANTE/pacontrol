@@ -5,9 +5,9 @@ import { useLocation } from 'react-router-dom';
 import { motion } from 'motion/react';
 
 const PAGE_TITLES: Record<string, string> = {
-  '/dashboard':     'Dashboard',
+  '/dashboard':     'Visão geral',
   '/agenda':        'Agenda',
-  '/subscriptions': 'Clientes & Assinaturas',
+  '/subscriptions': 'Assinaturas',
   '/expenses':      'Despesas',
   '/whatsapp':      'WhatsApp',
 };
@@ -18,24 +18,21 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <SidebarProvider>
-      <div className="atmospheric-bg" />
       <AppSidebar />
-      <SidebarInset className="bg-transparent flex w-full flex-col min-h-svh">
-        {/* Topbar */}
-        <header className="sticky top-0 z-20 flex h-14 items-center gap-3 px-5 border-b border-border bg-card/90 backdrop-blur-sm shadow-[0_1px_0_var(--border)]">
+      <SidebarInset className="flex w-full flex-col min-h-svh bg-background">
+        <header className="sticky top-0 z-20 flex h-[52px] items-center gap-2.5 px-4 sm:px-5
+                           border-b border-border bg-background/85 backdrop-blur-md">
           <SidebarTrigger className="text-muted-foreground hover:text-foreground transition-colors" />
-          <div className="w-px h-4 bg-border" />
-          <span className="text-sm font-medium text-foreground">{title}</span>
+          <span className="text-[13px] font-medium text-foreground">{title}</span>
         </header>
 
-        {/* Content */}
-        <main className="flex-1 p-4 sm:p-6 md:p-8 overflow-x-hidden">
+        <main className="flex-1 px-4 py-6 sm:px-6 sm:py-8 lg:px-8 overflow-x-hidden">
           <motion.div
             key={pathname}
-            initial={{ opacity: 0, y: 12 }}
+            initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.25, ease: 'easeOut' }}
-            className="w-full h-full max-w-screen-xl mx-auto"
+            transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+            className="w-full max-w-6xl mx-auto"
           >
             {children}
           </motion.div>

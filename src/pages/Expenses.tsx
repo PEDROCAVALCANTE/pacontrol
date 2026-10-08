@@ -134,7 +134,7 @@ export default function ExpensesPage() {
       />
 
       {/* Month Navigation */}
-      <div className="flex items-center justify-between glass-panel p-4 rounded-[1.5rem] shadow-lg max-w-xs mx-auto sm:max-w-none sm:mx-0">
+      <div className="flex items-center justify-between panel-raised p-4 max-w-xs mx-auto sm:max-w-none sm:mx-0">
         <Button variant="outline" size="icon" onClick={() => setCurrentViewMonth(prev => subMonths(prev, 1))} className="bg-muted text-foreground hover:bg-muted/80 shrink-0">
           <ChevronLeft className="w-5 h-5" />
         </Button>
@@ -149,80 +149,69 @@ export default function ExpensesPage() {
         </Button>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-3">
-        {/* Total do mês */}
-        {[
-          { label: 'Total Despesas', value: monthTotal, prev: prevMonthTotal, diff: totalDiff, color: '#EF4444' },
-          { label: 'Total Pago',     value: monthPaidTotal, prev: prevMonthPaidTotal, diff: paidDiff, color: '#10B981' },
-          { label: 'Pendente',       value: monthPendingTotal, prev: null, diff: null, color: '#F59E0B' },
-        ].map((item, i) => (
-          <motion.div key={item.label} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.07 }}>
-            <div className="rounded-xl p-5 card-interactive" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
-              <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider mb-2">{item.label}</p>
-              <p className="tabular text-xl font-semibold mb-2" style={{ color: item.color }}>
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+        className="panel-raised overflow-hidden"
+      >
+        <div className="grid grid-cols-3 divide-x divide-border">
+          {[
+            { label: 'Total', value: monthTotal, prev: prevMonthTotal, diff: totalDiff, color: 'var(--foreground)' },
+            { label: 'Pago', value: monthPaidTotal, prev: prevMonthPaidTotal, diff: paidDiff, color: 'var(--success)' },
+            { label: 'Pendente', value: monthPendingTotal, prev: null, diff: null, color: 'var(--warning)' },
+          ].map(item => (
+            <div key={item.label} className="px-3 py-4 sm:px-5 sm:py-5">
+              <p className="label-xs">{item.label}</p>
+              <p className="tabular text-[17px] sm:text-[22px] font-semibold leading-tight mt-1.5" style={{ color: item.color }}>
                 {fmt(item.value)}
               </p>
-              {item.diff !== null && item.prev !== null ? (
-                <div className="flex items-center gap-2">
-                  <span className={`text-xs font-semibold px-1.5 py-0.5 rounded-md ${item.diff > 0 ? 'bg-red-500/10 text-red-400' : item.diff < 0 ? 'bg-emerald-500/10 text-emerald-400' : 'bg-muted text-muted-foreground'}`}>
-                    {item.diff > 0 ? '▲' : item.diff < 0 ? '▼' : '–'} {Math.abs(item.diff).toFixed(1)}%
+              <div className="h-4 mt-1">
+                {item.diff !== null && item.prev !== null ? (
+                  <span className="tabular text-[11px] font-semibold"
+                        style={{ color: item.diff > 0 ? 'var(--danger)' : item.diff < 0 ? 'var(--success)' : 'var(--muted-foreground)' }}>
+                    {item.diff > 0 ? '+' : ''}{item.diff.toFixed(0)}% <span className="font-normal text-muted-foreground">vs {prevLabel}</span>
                   </span>
-                  <span className="text-[10px] text-muted-foreground">{prevLabel}: {fmt(item.prev)}</span>
-                </div>
-              ) : item.prev !== null && item.prev > 0 ? (
-                <span className="text-[10px] text-muted-foreground">{prevLabel}: {fmt(item.prev)}</span>
-              ) : null}
+                ) : null}
+              </div>
             </div>
-          </motion.div>
-        ))}
-      </div>
+          ))}
+        </div>
+      </motion.div>
 
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
-        <div className="rounded-xl overflow-hidden" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
-          <div className="px-4 pt-4 pb-2">
-            <p className="text-sm font-semibold text-foreground">Histórico</p>
+        <div className="panel-raised overflow-hidden">
+          <div className="px-4 sm:px-5 pt-4 pb-3 border-b border-border">
+            <p className="text-[14px] font-semibold text-foreground">Histórico</p>
           </div>
 
-          {/* Mobile cards */}
-          <div className="sm:hidden p-4 pt-2 space-y-3">
+          {/* Mobile: lista de linhas, sem card dentro de card */}
+          <div className="sm:hidden divide-y divide-border">
             {monthExpenses.length === 0 ? (
-              <p className="text-center py-8 text-sm text-muted-foreground">
+              <p className="text-center py-10 text-[13px] text-muted-foreground px-4">
                 Nenhuma despesa em {format(currentViewMonth, 'MMMM yyyy', { locale: ptBR })}.
               </p>
-            ) : monthExpenses.map((expense, index) => (
-              <motion.div
-                key={expense.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05 }}
-                className="rounded-xl p-4"
-                style={{ background: 'var(--background)', border: '1px solid var(--border)' }}
-              >
-                <div className="flex items-start justify-between gap-3 mb-3">
-                  <div>
-                    <p className="font-semibold text-foreground text-[13px]">{expense.description}</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">{format(new Date(expense.date), 'dd/MM/yyyy')}</p>
+            ) : monthExpenses.map(expense => (
+              <div key={expense.id} className="row-hover px-4 py-3 flex items-center gap-3">
+                <div className="min-w-0 flex-1">
+                  <p className="text-[13.5px] font-semibold text-foreground truncate">{expense.description}</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="text-[11.5px] text-muted-foreground tabular">
+                      {format(new Date(expense.date), 'dd/MM')}
+                    </span>
+                    <button onClick={() => handleTogglePaid(expense)} className={expense.paid ? 'pill-success' : 'pill-warning'}>
+                      {expense.paid
+                        ? <><CheckCircle2 className="h-3 w-3" /> Paga</>
+                        : <><Clock className="h-3 w-3" /> Pendente</>
+                      }
+                    </button>
                   </div>
-                  <p className={`font-bold text-sm tabular shrink-0 ${expense.paid ? 'text-rose-400' : 'text-foreground'}`}>
-                    {fmt(expense.amount)}
-                  </p>
                 </div>
-                <div className="flex items-center justify-between pt-3" style={{ borderTop: '1px solid var(--border)' }}>
-                  <Badge
-                    variant="outline"
-                    className={`cursor-pointer ${expense.paid ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 'bg-amber-500/10 text-amber-500 border-amber-500/20'}`}
-                    onClick={() => handleTogglePaid(expense)}
-                  >
-                    {expense.paid
-                      ? <span className="flex items-center gap-1"><CheckCircle2 className="h-3 w-3" /> Paga</span>
-                      : <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> Pendente</span>
-                    }
-                  </Badge>
-                  <Button variant="ghost" size="icon" onClick={() => handleDelete(expense.id)}>
-                    <Trash2 className="h-4 w-4 text-rose-400" />
-                  </Button>
-                </div>
-              </motion.div>
+                <span className="tabular text-[13px] font-medium text-foreground shrink-0">{fmt(expense.amount)}</span>
+                <Button variant="ghost" size="icon-sm" onClick={() => handleDelete(expense.id)}>
+                  <Trash2 className="h-3.5 w-3.5" style={{ color: 'var(--danger)' }} />
+                </Button>
+              </div>
             ))}
           </div>
 

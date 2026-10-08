@@ -9,9 +9,9 @@ import { motion } from 'motion/react';
 const LOGO = 'https://iili.io/Bs2OL4s.png';
 
 export default function LoginPage() {
-  const [email, setEmail]       = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [loading, setLoading]   = useState(false);
+  const [loading, setLoading] = useState(false);
   const { login } = useAuth();
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -25,74 +25,54 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex bg-[#060A0F]">
+    <div className="min-h-svh flex bg-background">
 
-      {/* ── Left panel — branding ─────────────────────────────── */}
-      <div className="hidden lg:flex w-[42%] flex-col items-center justify-center relative overflow-hidden px-12"
-           style={{ borderRight: '1px solid rgba(255,255,255,0.05)' }}>
-        {/* Ambient glow */}
-        <div className="absolute inset-0 pointer-events-none"
-             style={{ background: 'radial-gradient(ellipse 80% 60% at 50% 40%, rgba(255,106,0,0.07) 0%, transparent 70%)' }} />
-
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="flex flex-col items-center gap-6 relative z-10"
-        >
-          <img src={LOGO} alt="PA Control" className="w-24 h-24 rounded-2xl object-cover shadow-2xl" />
-          <div className="text-center">
-            <h1 className="text-3xl font-semibold text-white tracking-tight">PA Control</h1>
-            <p className="text-sm text-white/40 mt-2 tracking-wide">Gestão financeira simplificada</p>
+      {/* Marca, só em tela grande */}
+      <div className="hidden lg:flex w-[38%] flex-col justify-between p-10 bg-primary">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-[10px] overflow-hidden bg-primary-foreground/10">
+            <img src={LOGO} alt="" className="w-full h-full object-cover" />
           </div>
+          <span className="text-[14px] font-semibold text-primary-foreground">PA Control</span>
+        </div>
 
-          {/* Decorative dots */}
-          <div className="flex gap-2 mt-4">
-            {[0,1,2].map(i => (
-              <div key={i} className="w-1.5 h-1.5 rounded-full"
-                   style={{ background: i === 1 ? '#FF6A00' : 'rgba(255,255,255,0.15)' }} />
-            ))}
-          </div>
-        </motion.div>
+        <div>
+          <h1 className="text-[34px] leading-[1.15] font-semibold text-primary-foreground max-w-[13ch]">
+            Suas mensalidades em dia.
+          </h1>
+          <p className="text-[14px] text-primary-foreground/70 mt-3 max-w-[32ch]">
+            Receba, cobre e acompanhe cada cliente em um lugar só.
+          </p>
+        </div>
 
-        <p className="absolute bottom-8 text-[11px] text-white/20 tracking-widest uppercase">
-          © 2026 PA Control
-        </p>
+        <p className="text-[11px] text-primary-foreground/50">© 2026 PA Control</p>
       </div>
 
-      {/* ── Right panel — form ────────────────────────────────── */}
-      <div className="flex-1 flex flex-col items-center justify-center px-6 sm:px-12">
-
-        {/* Mobile logo */}
+      {/* Formulário */}
+      <div className="flex-1 flex flex-col items-center justify-center px-5 sm:px-10">
         <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.4 }}
-          className="lg:hidden mb-10 flex flex-col items-center gap-3"
-        >
-          <img src={LOGO} alt="PA Control" className="w-16 h-16 rounded-xl object-cover shadow-xl" />
-          <p className="text-sm font-medium text-white/50">PA Control</p>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.1 }}
-          className="w-full max-w-sm"
+          transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+          className="w-full max-w-[340px]"
         >
-          <div className="mb-8">
-            <h2 className="text-2xl font-semibold text-white tracking-tight">Bem-vindo de volta</h2>
-            <p className="text-sm text-white/40 mt-1">Entre com suas credenciais para continuar</p>
+          <div className="lg:hidden flex items-center gap-2.5 mb-10">
+            <div className="w-9 h-9 rounded-[11px] overflow-hidden bg-primary shrink-0">
+              <img src={LOGO} alt="" className="w-full h-full object-cover" />
+            </div>
+            <span className="text-[15px] font-semibold text-foreground">PA Control</span>
           </div>
 
-          <form onSubmit={handleLogin} className="space-y-5">
-            {/* Email */}
+          <h2 className="text-[22px] font-semibold text-foreground">Entrar</h2>
+          <p className="text-[13px] text-muted-foreground mt-1 mb-7">
+            Acesse com o e-mail cadastrado.
+          </p>
+
+          <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-1.5">
-              <Label htmlFor="email" className="text-xs font-medium text-white/50 uppercase tracking-wider">
-                E-mail
-              </Label>
+              <Label htmlFor="email" className="label-xs">E-mail</Label>
               <div className="relative">
-                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   id="email"
                   type="email"
@@ -105,13 +85,10 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {/* Password */}
             <div className="space-y-1.5">
-              <Label htmlFor="password" className="text-xs font-medium text-white/50 uppercase tracking-wider">
-                Senha
-              </Label>
+              <Label htmlFor="password" className="label-xs">Senha</Label>
               <div className="relative">
-                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   id="password"
                   type="password"
@@ -124,24 +101,17 @@ export default function LoginPage() {
               </div>
             </div>
 
-            <Button
-              type="submit"
-              disabled={loading}
-              className="w-full h-11 mt-2 font-medium tracking-wide rounded-xl text-sm"
-              style={{ background: '#FF6A00', color: '#fff' }}
-            >
+            <Button type="submit" disabled={loading} className="w-full h-11 mt-2 text-[14px] font-semibold">
               {loading ? (
                 <span className="flex items-center gap-2">
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  Autenticando...
+                  Entrando
                 </span>
               ) : 'Entrar'}
             </Button>
           </form>
 
-          <p className="text-center text-[11px] text-white/20 mt-10 tracking-wider uppercase lg:hidden">
-            © 2026 PA Control
-          </p>
+          <p className="text-[11px] text-muted-foreground mt-10 lg:hidden">© 2026 PA Control</p>
         </motion.div>
       </div>
     </div>

@@ -11,11 +11,12 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { getClients, getSubscriptions, addSubscription, updateSubscription, deleteSubscription } from '@/lib/data-store';
 import { Client, Subscription } from '@/lib/types';
-import { Search, Plus, Edit2, CheckCircle2, MessageCircle, Trash2, Send } from 'lucide-react';
+import { Search, Plus, Edit2, CheckCircle2, Trash2, Send } from 'lucide-react';
+import { WhatsAppButton } from '@/components/WhatsAppButton';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'motion/react';
 import { isBefore, startOfDay, format } from 'date-fns';
-import { buildWaLink, chargeMessage, daysLateFor, dueDateIn, sendWhatsApp, thankYouMessage } from '@/lib/whatsapp';
+import { dueDateIn, sendWhatsApp, thankYouMessage } from '@/lib/whatsapp';
 import { PageHeader } from '@/components/PageHeader';
 
 export default function SubscriptionsPage() {
@@ -168,18 +169,6 @@ export default function SubscriptionsPage() {
     }
   };
 
-  const handleSendReminder = (sub: Subscription) => {
-    const phone = getSubClientPhone(sub);
-    if (!phone) {
-      toast.error('Assinatura sem telefone cadastrado.');
-      return;
-    }
-    
-    const message = chargeMessage(getSubClientName(sub), sub.monthlyValue, sub.dueDay, daysLateFor(sub.dueDay));
-    
-    window.open(buildWaLink(phone, message), '_blank');
-  };
-
   const filteredSubs = subs.filter(s => {
     const name = getSubClientName(s).toLowerCase();
     return name.includes(search.toLowerCase());
@@ -252,9 +241,9 @@ export default function SubscriptionsPage() {
         }
       />
 
-      <div className="rounded-xl overflow-hidden" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
+      <div className="panel-raised overflow-hidden">
         {/* Search */}
-        <div className="p-4 pb-0">
+        <div className="p-4 pb-4 border-b border-border">
           <div className="relative">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
@@ -266,87 +255,72 @@ export default function SubscriptionsPage() {
           </div>
         </div>
 
-        {/* Mobile cards */}
-        <div className="sm:hidden p-4 space-y-3">
-          <AnimatePresence mode="popLayout">
-            {filteredSubs.length === 0 ? (
-              <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                className="text-center py-8 text-sm text-muted-foreground">
-                Nenhuma assinatura encontrada.
-              </motion.p>
-            ) : filteredSubs.map((sub) => {
-              const dueDate = dueDateIn(today, sub.dueDay);
-              const isPaid  = sub.payments ? sub.payments[currentMonthKey] === true : sub.paid === true;
-              const isLate  = sub.status === 'active' && !isPaid && isBefore(dueDate, today);
-              const cPhone  = getSubClientPhone(sub);
-              return (
-                <motion.div
-                  key={sub.id}
-                  layout
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  className="rounded-xl p-4"
-                  style={{ background: 'var(--background)', border: '1px solid var(--border)' }}
-                >
-                  <div className="flex items-start justify-between mb-3">
-                    <div>
-                      <p className="font-semibold text-foreground text-[14px]">{getSubClientName(sub)}</p>
-                      {sub.service && <p className="text-xs text-muted-foreground mt-0.5">{sub.service}</p>}
-                    </div>
-                    {sub.status === 'inactive' ? (
-                      <span className="pill-muted">Inativa</span>
-                    ) : isPaid ? (
-                      <span className="pill-success">● Pago</span>
-                    ) : isLate ? (
-                      <span className="pill-danger">● Atrasado</span>
-                    ) : (
-                      <span className="pill-warning">● Aberto</span>
-                    )}
+        {/* Mobile: lista de linhas */}
+        <div className="sm:hidden divide-y divide-border">
+          {filteredSubs.length === 0 ? (
+            <p className="text-center py-10 text-[13px] text-muted-foreground px-4">
+              Nenhuma assinatura encontrada.
+            </p>
+          ) : filteredSubs.map((sub) => {
+            const dueDate = dueDateIn(today, sub.dueDay);
+            const isPaid  = sub.payments ? sub.payments[currentMonthKey] === true : sub.paid === true;
+            const isLate  = sub.status === 'active' && !isPaid && isBefore(dueDate, today);
+            const cPhone  = getSubClientPhone(sub);
+            return (
+              <div key={sub.id} className="px-4 py-3.5">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-[13.5px] font-semibold text-foreground truncate">{getSubClientName(sub)}</p>
+                    <p className="text-[11.5px] text-muted-foreground mt-0.5 truncate">
+                      <span className="tabular">dia {sub.dueDay}</span>
+                      {' · '}
+                      <span className="tabular">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(sub.monthlyValue)}</span>
+                      {sub.service && ` · ${sub.service}`}
+                    </p>
                   </div>
-                  <div className="grid grid-cols-2 gap-x-4 gap-y-1 mb-3 text-xs text-muted-foreground">
-                    <span>Vencimento: <b className="text-foreground">Dia {sub.dueDay}</b></span>
-                    <span>Valor: <b className="text-foreground">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(sub.monthlyValue)}</b></span>
-                    {sub.responsible && <span>Resp.: <b className="text-foreground">{sub.responsible}</b></span>}
-                    {cPhone && <span>Tel: <b className="text-foreground">{cPhone}</b></span>}
-                  </div>
-                  <div className="flex items-center gap-2 pt-3" style={{ borderTop: '1px solid var(--border)' }}>
-                    {sub.status === 'active' && (
-                      <Button
-                        variant={isPaid ? 'outline' : 'default'}
-                        size="sm"
-                        className={`flex-1 ${isPaid ? 'text-muted-foreground' : 'bg-emerald-600 hover:bg-emerald-700 text-white'}`}
-                        onClick={() => markAsPaid(sub)}
-                        disabled={payingId === sub.id}
-                      >
-                        <CheckCircle2 className="h-4 w-4 mr-1.5" />
-                        {isPaid ? 'Desfazer' : 'Pagar'}
-                      </Button>
-                    )}
-                    {isPaid && cPhone && (
-                      <Button
-                        variant="ghost" size="icon"
-                        title="Reenviar mensagem de obrigado"
-                        disabled={sendingId === sub.id}
-                        onClick={() => sendThankYou(sub, true)}
-                      >
-                        <Send className={`h-4 w-4 text-emerald-500 ${sendingId === sub.id ? 'animate-pulse' : ''}`} />
-                      </Button>
-                    )}
-                    <Button variant="ghost" size="icon" onClick={() => handleSendReminder(sub)}>
-                      <MessageCircle className="h-4 w-4 text-emerald-500" />
+                  {sub.status === 'inactive' ? (
+                    <span className="pill-muted shrink-0">Inativa</span>
+                  ) : isPaid ? (
+                    <span className="pill-success shrink-0">Pago</span>
+                  ) : isLate ? (
+                    <span className="pill-danger shrink-0">Atrasado</span>
+                  ) : (
+                    <span className="pill-warning shrink-0">Aberto</span>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-1.5 mt-3">
+                  {sub.status === 'active' && (
+                    <Button
+                      variant={isPaid ? 'outline' : 'default'}
+                      size="sm"
+                      className="flex-1"
+                      onClick={() => markAsPaid(sub)}
+                      disabled={payingId === sub.id}
+                    >
+                      <CheckCircle2 className="h-3.5 w-3.5 mr-1.5" />
+                      {isPaid ? 'Desfazer' : 'Pagar'}
                     </Button>
-                    <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(sub)}>
-                      <Edit2 className="h-4 w-4 text-blue-400" />
+                  )}
+                  {!isPaid && cPhone && sub.status === 'active' && (
+                    <WhatsAppButton phone={cPhone} clientName={getSubClientName(sub)} dueDay={sub.dueDay} value={Number(sub.monthlyValue)} />
+                  )}
+                  {isPaid && cPhone && (
+                    <Button variant="ghost" size="icon" title="Reenviar obrigado"
+                            disabled={sendingId === sub.id} onClick={() => sendThankYou(sub, true)}>
+                      <Send className={`h-3.5 w-3.5 ${sendingId === sub.id ? 'animate-pulse' : ''}`} style={{ color: 'var(--success)' }} />
                     </Button>
-                    <Button variant="ghost" size="icon" onClick={() => handleDelete(sub.id)}>
-                      <Trash2 className="h-4 w-4 text-rose-400" />
-                    </Button>
-                  </div>
-                </motion.div>
-              );
-            })}
-          </AnimatePresence>
+                  )}
+                  <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(sub)}>
+                    <Edit2 className="h-3.5 w-3.5 text-muted-foreground" />
+                  </Button>
+                  <Button variant="ghost" size="icon" onClick={() => handleDelete(sub.id)}>
+                    <Trash2 className="h-3.5 w-3.5" style={{ color: 'var(--danger)' }} />
+                  </Button>
+                </div>
+              </div>
+            );
+          })}
         </div>
 
         {/* Desktop table */}
@@ -411,7 +385,7 @@ export default function SubscriptionsPage() {
                                   <Button
                                     variant={isPaid ? 'outline' : 'default'}
                                     size="sm"
-                                    className={isPaid ? 'text-muted-foreground' : 'bg-emerald-600 hover:bg-emerald-700 text-white'}
+                                    className={isPaid ? 'text-muted-foreground' : ''}
                                     onClick={() => markAsPaid(sub)}
                         disabled={payingId === sub.id}
                                   >
@@ -429,14 +403,14 @@ export default function SubscriptionsPage() {
                                     <Send className={`h-4 w-4 text-emerald-500 ${sendingId === sub.id ? 'animate-pulse' : ''}`} />
                                   </Button>
                                 )}
-                                <Button variant="ghost" size="icon" onClick={() => handleSendReminder(sub)} title="Enviar Lembrete WhatsApp">
-                                  <MessageCircle className="h-4 w-4 text-emerald-500" />
-                                </Button>
+                                {!isPaid && cPhone && sub.status === 'active' && (
+                                  <WhatsAppButton phone={cPhone} clientName={getSubClientName(sub)} dueDay={sub.dueDay} value={Number(sub.monthlyValue)} />
+                                )}
                                 <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(sub)}>
-                                  <Edit2 className="h-4 w-4 text-blue-400" />
+                                  <Edit2 className="h-4 w-4 text-muted-foreground" />
                                 </Button>
                                 <Button variant="ghost" size="icon" onClick={() => handleDelete(sub.id)}>
-                                  <Trash2 className="h-4 w-4 text-rose-400" />
+                                  <Trash2 className="h-4 w-4" style={{ color: 'var(--danger)' }} />
                                 </Button>
                               </div>
                             </TableCell>

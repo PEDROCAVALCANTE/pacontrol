@@ -5,3 +5,11 @@ coverage/
 *.log
 .env*
 !.env.example
+.vercel
+
+# pastas que nao pertencem ao app
+temp_design_repo/
+evolution-api/
+dist/
+tsconfig.tsbuildinfo
+.claude/
