@@ -67,7 +67,7 @@ const FOOTER = `\n\n_PA Control · mensagem automática_`;
 // Padrao EMV do Banco Central. O cliente cola no app do banco e o valor e o
 // favorecido ja vem preenchidos. Manter igual em scripts/send-reminders.js.
 
-const PIX_KEY   = '69360759000181';                 // CNPJ, so digitos
+export const PIX_KEY = '69360759000181';            // CNPJ, so digitos
 const PIX_NAME  = 'PEDRO H F S CAVALCANTE';         // limite de 25 caracteres
 const PIX_CITY  = 'APARECIDA DE GO';                // limite de 15 caracteres
 
@@ -126,7 +126,9 @@ export function chargeMessage(name: string, value: number, dueDay: number, daysL
   const v = fmtBRL(value);
   let body: string;
 
-  const PIX_AVISO = `Para pagar, copie o código PIX da próxima mensagem e cole no seu banco. O valor e o favorecido já vão preenchidos.`;
+  const PIX_AVISO =
+    `Para pagar, use a *chave PIX* da próxima mensagem, ` +
+    `ou copie o *código copia e cola* da mensagem seguinte, que já vem com o valor preenchido.`;
 
   if (daysLate < 0) {
     body =
@@ -166,13 +168,14 @@ export function chargeMessage(name: string, value: number, dueDay: number, daysL
 }
 
 /**
- * Envia a cobrança em duas mensagens: o texto e, logo depois, só o código PIX.
- * Separar é o que permite ao cliente copiar o código com um toque.
+ * Envia a cobrança em três mensagens: o texto, só a chave PIX e só o código
+ * copia e cola. Cada uma sozinha é o que permite copiar com um toque.
  */
 export async function sendCharge(
   phone: string, name: string, value: number, dueDay: number, daysLate: number,
 ): Promise<void> {
   await sendWhatsApp(phone, chargeMessage(name, value, dueDay, daysLate));
+  await sendWhatsApp(phone, PIX_KEY);
   await sendWhatsApp(phone, pixPayload(value));
 }
 

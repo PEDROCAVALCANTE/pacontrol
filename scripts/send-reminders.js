@@ -92,7 +92,9 @@ const displayName = name => {
 function chargeMessage(name, value, dueDay, daysLate) {
   const n = displayName(name);
   const v = formatCurrency(value);
-  const PIX_AVISO = 'Para pagar, copie o código PIX da próxima mensagem e cole no seu banco. O valor e o favorecido já vão preenchidos.';
+  const PIX_AVISO =
+    'Para pagar, use a *chave PIX* da próxima mensagem, ' +
+    'ou copie o *código copia e cola* da mensagem seguinte, que já vem com o valor preenchido.';
   let body;
 
   if (daysLate < 0) {
@@ -207,13 +209,16 @@ async function main() {
     const pix     = pixPayload(sub.monthlyValue);
 
     if (DRY_RUN) {
-      console.log(`🧪 [${stage}] ${maskPhone(phone)}\n${message}\n\n--- 2a mensagem (PIX copia e cola) ---\n${pix}\n`);
+      console.log(`🧪 [${stage}] ${maskPhone(phone)}\n${message}\n\n--- 2a mensagem (chave PIX) ---\n${PIX_KEY}\n\n--- 3a mensagem (copia e cola) ---\n${pix}\n`);
       continue;
     }
 
     try {
       await sendWhatsApp(phone, message);
-      // O codigo vai sozinho numa segunda mensagem para o cliente copiar com um toque.
+      // Chave e codigo vao sozinhos, cada um em sua mensagem, para o cliente
+      // copiar com um toque.
+      await new Promise(r => setTimeout(r, 1200));
+      await sendWhatsApp(phone, PIX_KEY);
       await new Promise(r => setTimeout(r, 1200));
       await sendWhatsApp(phone, pix);
       await doc.ref.update({

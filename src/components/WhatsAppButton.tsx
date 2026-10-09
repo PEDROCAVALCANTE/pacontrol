@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { MessageCircle, Loader2, Check } from 'lucide-react';
 import { toast } from 'sonner';
-import { sendCharge, buildWaLink, chargeMessage, daysLateFor, pixPayload } from '@/lib/whatsapp';
+import { sendCharge, buildWaLink, chargeMessage, daysLateFor, pixPayload, PIX_KEY } from '@/lib/whatsapp';
 
 interface Props {
   phone: string;
@@ -29,8 +29,10 @@ export function WhatsAppButton({ phone, clientName, dueDay, value, label }: Prop
       setTimeout(() => setStatus('idle'), 4000);
     } catch (err) {
       toast.error(`Não enviou pela Evolution: ${err instanceof Error ? err.message : 'erro'}. Abrindo WhatsApp Web.`);
-      // No WhatsApp Web só cabe uma mensagem, então o código vai junto do texto.
-      const fallback = `${chargeMessage(clientName, value, dueDay, late)}\n\n${pixPayload(value)}`;
+      // No WhatsApp Web só cabe uma mensagem, então chave e código vão junto do texto.
+      const fallback =
+        `${chargeMessage(clientName, value, dueDay, late)}\n\n` +
+        `Chave PIX (CNPJ): ${PIX_KEY}\n\n${pixPayload(value)}`;
       window.open(buildWaLink(phone, fallback), '_blank');
       setStatus('idle');
     }
